@@ -1,5 +1,9 @@
 # Amazon Ads 原型中心
 
+在线预览：https://shadowshilei-glitch.github.io/ads/
+
+GitHub 仓库：https://github.com/shadowshilei-glitch/ads
+
 仅存放可公开的 HTML 原型与静态依赖，不同步业务数据、知识库或账号信息。
 
 ## 首次发布
@@ -18,5 +22,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Update-Index.ps1
 ```
 
 脚本根据 `pages/` 内的 HTML 生成首页目录。将更新后的目录上传到同一仓库，Pages 会在提交后更新。相同路径的原型链接保持不变。脚本不会自动上传或连接账户。
+
+本机维护目录为 `C:\Users\mmt\Documents\amazon\publish\ads-repository`。在此目录运行脚本并检查文件后，可用以下命令发布：
+
+```powershell
+git add pages index.html
+git commit -m "Update prototypes"
+git push origin main
+```
 
 外部链接、API、iframe 和资源路径需要在公开环境中另行验证。不要上传真实账号数据、密钥或含业务信息的浏览器缓存。
