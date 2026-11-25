@@ -528,6 +528,22 @@ body:not(.nav-open) .mgroup-items>.mi{padding:10px 18px;margin:0}
 /* 悬浮客服轻量化美化（不改内容） */
 .float-svc{right:12px;bottom:18px;width:32px;height:84px;border-radius:6px;background:rgba(64,158,255,.9);box-shadow:0 2px 8px rgba(64,158,255,.25)}
 .float-svc span{font-size:11px;letter-spacing:2px}
+/* 幅度提醒弹窗：直接调整 + 一键移除偏高项 */
+.amp-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 10px;background:#f7faff;border:1px solid #d9ecff;border-radius:4px;margin:10px 0 12px}
+.amp-toolbar select,.amp-toolbar input{height:28px;border:1px solid #dcdfe6;border-radius:4px;padding:0 7px;font-size:12px;color:#303133;background:#fff}
+.amp-toolbar input[type=number]{width:80px}
+.amp-toolbar .amp-spacer{flex:1;min-width:8px}
+.amp-btn-danger{color:#f56c6c!important;border-color:#fbc4c4!important;background:#fef0f0!important}
+.amp-btn-danger:hover{color:#fff!important;background:#f56c6c!important;border-color:#f56c6c!important}
+.amp-btn-soft{color:#146ed5!important;border-color:#b3d8ff!important;background:#ecf5ff!important}
+.amp-btn-soft:hover{background:#d9ecff!important;border-color:#409eff!important}
+.amp-input-wrap{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 6px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;width:105px}
+.amp-input-wrap:focus-within{border-color:#409eff}
+.amp-input-wrap span{color:#909399;font-size:12px;flex:none}
+.amp-input-wrap input{border:0;outline:none;padding:0;width:100%;min-width:0;font-size:12px;color:#303133;background:transparent}
+.amp-badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap}
+.amp-badge.over{background:#fef0f0;color:#f56c6c;border:1px solid #fbc4c4}
+.amp-badge.ok{background:#e8f8f2;color:#14764c;border:1px solid #b8ebd6}
 </style>
 </head>
 <body class="cmp-on nav-open">
@@ -4188,7 +4204,126 @@ function precheckBudget(){if(BUDGET_FLOW.changes.some(c=>!Number.isFinite(c.afte
 function renderBudgetRisk(hits){let level=hits.reduce((a,c)=>BUDGET_RANK[c.hit.level]>BUDGET_RANK[a]?c.hit.level:a,'页面提醒');BUDGET_FLOW.level=level;const totalCount=BUDGET_FLOW.changes.length,rows=hits.map(c=>'<tr><td><span class="tagmini '+c.row.t.toLowerCase()+'">'+c.row.t+'</span><br>'+safeRisk(c.row.n)+'</td><td><a class="budget-link" href="javascript:void(0)" onclick="toast(\'打开广告活动详情（本地演示）：\'+this.textContent)">'+safeRisk(c.row.n)+'</a></td><td>'+safeRisk(c.hit.style)+'<br>（'+safeRisk(c.hit.owner)+'）</td><td>'+safeRisk(c.hit.rule)+'<br><span style="color:'+(c.hit.level==='禁止操作'?'#f56c6c':'#e6a23c')+'">管控等级：'+c.hit.level+'</span></td><td>店铺：amazon/US/topshoesUS<br>控制动作：提高广告活动预算<br>'+safeRisk(c.hit.condition)+'</td><td>'+safeRisk(c.hit.current)+'</td></tr>').join('');budgetDialog('管控提示','<div>本次总共调整 '+totalCount+' 个广告活动，共 '+hits.length+' 个需修改预算的广告活动触发了管控规则，请确认是否继续？</div><div class="risk-level '+(level==='禁止操作'?'block':'')+'">管控等级：'+level+'</div><p>触发规则的广告活动：</p><table><thead><tr><th style="width:16%">名称</th><th style="width:15%">广告活动/广告组</th><th style="width:12%">Style</th><th style="width:15%">管控规则名称</th><th style="width:24%">管控规则</th><th style="width:18%">当前表现</th></tr></thead><tbody>'+rows+'</tbody></table><div class="risk-choices" style="flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px 20px"><span style="color:#606266"><span class="red">*</span>处理方式：</span><label><input type="radio" name="budgetDecision" value="exclude" checked onchange="budgetDecisionChanged()">排除掉风控部分，其他继续提交</label>'+(level!=='禁止操作'?'<label><input type="radio" name="budgetDecision" value="all" onchange="budgetDecisionChanged()">全部继续提交</label>':'')+'</div><div id="budgetApproval" class="approval-field" hidden><div style="margin-bottom:8px"><span class="red">*</span>审批备注：</div><div style="position:relative"><textarea id="budgetApprovalNote" maxlength="1000" placeholder="请输入审批备注" oninput="document.getElementById(\'budgetNoteCount\').textContent=this.value.length+\'/1000\'"></textarea><span id="budgetNoteCount" style="position:absolute;right:10px;bottom:8px;font-size:11px;color:#909399;pointer-events:none">0/1000</span></div></div>','<span class="risk-error" id="budgetError"></span><span class="budget-foot-note" id="budgetFooterHint">排除命中的广告活动后继续提交</span><span class="sp"></span><button class="btn" onclick="closeBudgetFlow()">取消</button><button class="btn pri" onclick="confirmBudgetRisk()">确定</button>')}
 function budgetDecisionChanged(){const all=document.querySelector('input[name=budgetDecision]:checked')?.value==='all',approval=BUDGET_FLOW.level==='飞书审批'&&all;document.getElementById('budgetApproval').hidden=!approval;document.getElementById('budgetFooterHint').textContent=approval?'确定后将发起飞书审批，审批通过后才会提交到Amazon':all?'确定后将提交到Amazon':'排除命中的广告活动后继续提交';document.getElementById('budgetError').textContent=''}
 function confirmBudgetRisk(){const all=document.querySelector('input[name=budgetDecision]:checked')?.value==='all';if(all&&BUDGET_FLOW.level==='飞书审批'){const note=document.getElementById('budgetApprovalNote').value.trim();if(!note){document.getElementById('budgetError').textContent='请填写审批备注';return}BUDGET_FLOW.note=note;BUDGET_FLOW.approval=true;checkBudgetAmplitude(BUDGET_FLOW.changes);return}const chosen=all?BUDGET_FLOW.changes:BUDGET_FLOW.changes.filter(c=>!c.hit);if(!chosen.length){closeBudgetFlow();toast('已排除全部风控活动，无可提交的预算修改');return}checkBudgetAmplitude(chosen)}
-function checkBudgetAmplitude(changes){BUDGET_FLOW.final=changes;const over=changes.filter(c=>(c.after-c.before)/c.before>1);if(!over.length){finishBudget();return}let body;if(changes.length===1)body='<div>修改预算：'+changes[0].before+' → '+changes[0].after+'</div><div style="margin-top:8px">提升幅度大于<span class="red">100%</span>，请确认是否继续？</div>';else body='<p>以下广告活动的预算提升幅度<span class="red">大于100%</span>，请确认是否继续？</p><table><thead><tr><th>广告活动</th><th>当前预算</th><th>修改后预算</th></tr></thead><tbody>'+over.map(c=>'<tr><td><span class="tagmini '+c.row.t.toLowerCase()+'">'+c.row.t+'</span> '+safeRisk(c.row.n)+'</td><td>$'+c.before.toFixed(2)+'/日</td><td>$'+c.after.toFixed(2)+'/日</td></tr>').join('')+'</tbody></table>';budgetDialog('风控提醒',body,'<span class="sp"></span><button class="btn" onclick="closeBudgetFlow()">取消</button><button class="btn pri" onclick="finishBudget()">继续</button>',changes.length===1?530:850)}
+function checkBudgetAmplitude(changes){
+  BUDGET_FLOW.final=changes;
+  const over=changes.filter(c=>(c.after-c.before)/c.before>1);
+  if(!over.length){finishBudget();return}
+  BUDGET_FLOW.ampOver=over;
+  BUDGET_FLOW.ampOp='cap';
+  BUDGET_FLOW.ampBasis='after';
+  BUDGET_FLOW.ampVal='';
+  renderBudgetAmplitudeModal();
+}
+function isBudgetOver(c){return Number.isFinite(c.after)&&c.before>0&&(c.after-c.before)/c.before>1+1e-6}
+function renderBudgetAmplitudeModal(){
+  const over=BUDGET_FLOW.ampOver||[];
+  if(!over.length){
+    closeBudgetFlow();
+    if(BUDGET_FLOW.final.length){finishBudget();}
+    else toast('已移除全部偏高预算，无可提交的修改');
+    return;
+  }
+  const overNow=over.filter(isBudgetOver).length;
+  const op=BUDGET_FLOW.ampOp||'cap',basis=BUDGET_FLOW.ampBasis||'after',val=BUDGET_FLOW.ampVal||'';
+  const body=`
+    <div>以下广告活动的预算提升幅度<span class="red">大于100%</span>（异常 ${over.length} 项，其中 <span id="budgetAmpOverCnt" class="red">${overNow}</span> 项仍超限），可直接微调修改后预算，或一键移除偏高项：</div>
+    <div class="amp-toolbar">
+      <select aria-label="调整基准" onchange="BUDGET_FLOW.ampBasis=this.value">
+        <option value="after" ${basis==='after'?'selected':''}>基于修改后预算</option>
+        <option value="before" ${basis==='before'?'selected':''}>基于当前预算</option>
+      </select>
+      <select aria-label="批量调整方式" onchange="BUDGET_FLOW.ampOp=this.value;renderBudgetAmplitudeModal()">
+        <option value="cap" ${op==='cap'?'selected':''}>按+100%上限封顶</option>
+        <option value="decPct" ${op==='decPct'?'selected':''}>降低(%)</option>
+        <option value="incPct" ${op==='incPct'?'selected':''}>提高(%)</option>
+        <option value="decAmt" ${op==='decAmt'?'selected':''}>降低($)</option>
+        <option value="incAmt" ${op==='incAmt'?'selected':''}>提高($)</option>
+        <option value="fixed" ${op==='fixed'?'selected':''}>固定为($)</option>
+      </select>
+      ${op!=='cap'?`<input type="number" min="0" step="0.01" placeholder="数值" value="${safeRisk(val)}" oninput="BUDGET_FLOW.ampVal=this.value">`:''}
+      <button type="button" class="btn sm amp-btn-soft" onclick="applyBudgetAmpBatch()">批量应用</button>
+      <span class="amp-spacer"></span>
+      <button type="button" id="budgetAmpRmBtn" class="btn sm amp-btn-danger" onclick="removeBudgetAmpOver(false)">一键移除偏高预算${overNow?` (${overNow})`:''}</button>
+    </div>
+    <table>
+      <thead><tr><th style="width:36%">广告活动</th><th style="width:15%">当前预算</th><th style="width:22%">修改后预算</th><th style="width:17%">提升幅度</th><th style="width:10%">操作</th></tr></thead>
+      <tbody>${over.map((c,i)=>{
+        const pct=c.before&&Number.isFinite(c.after)?(c.after-c.before)/c.before*100:0;
+        const isOver=isBudgetOver(c);
+        return `<tr>
+          <td><span class="tagmini ${c.row.t.toLowerCase()}">${c.row.t}</span> ${safeRisk(c.row.n)}</td>
+          <td>$${c.before.toFixed(2)}/日</td>
+          <td><span class="amp-input-wrap"><span>$</span><input type="number" min="1" step="0.01" aria-label="修改后预算 ${i+1}" value="${Number.isFinite(c.after)?c.after.toFixed(2):''}" oninput="updateBudgetAmpRow(${i},this.value)"></span></td>
+          <td><span id="budgetAmpBadge-${i}" class="amp-badge ${isOver?'over':'ok'}">${pct>=0?'+':''}${pct.toFixed(1)}%${isOver?' 超限':' 正常'}</span></td>
+          <td><a class="budget-link" style="color:#f56c6c" href="javascript:void(0)" onclick="removeBudgetAmpSingle(${i})">移除</a></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+  const footer=`<span class="risk-error" id="budgetAmpErr"></span><span class="budget-foot-note" id="budgetAmpHint">${overNow?`当前仍有 ${overNow} 项超出 +100%`:'全部异常项已调整至安全幅度内'}</span><span class="sp"></span><button type="button" class="btn" onclick="closeBudgetFlow()">取消</button>${overNow?`<button type="button" class="btn amp-btn-danger" onclick="removeBudgetAmpOver(true)">一键移除偏高预算并继续</button>`:''}<button type="button" class="btn pri" onclick="confirmBudgetAmpSubmit()">确认并继续</button>`;
+  budgetDialog('风控提醒',body,footer,940);
+}
+function updateBudgetAmpRow(idx,raw){
+  const c=BUDGET_FLOW.ampOver[idx];if(!c)return;
+  const v=Number(raw);
+  c.after=raw.trim()===''||!Number.isFinite(v)?NaN:v;
+  const badge=document.getElementById('budgetAmpBadge-'+idx);
+  if(badge){
+    if(!Number.isFinite(c.after)||c.after<1){badge.className='amp-badge over';badge.textContent='无效数值';}
+    else{
+      const pct=(c.after-c.before)/c.before*100,isOver=isBudgetOver(c);
+      badge.className='amp-badge '+(isOver?'over':'ok');
+      badge.textContent=(pct>=0?'+':'')+pct.toFixed(1)+'%'+(isOver?' 超限':' 正常');
+    }
+  }
+  const overNow=BUDGET_FLOW.ampOver.filter(isBudgetOver).length;
+  const cnt=document.getElementById('budgetAmpOverCnt');if(cnt)cnt.textContent=String(overNow);
+  const rmBtn=document.getElementById('budgetAmpRmBtn');if(rmBtn)rmBtn.textContent=`一键移除偏高预算${overNow?` (${overNow})`:''}`;
+  const hint=document.getElementById('budgetAmpHint');if(hint)hint.textContent=overNow?`当前仍有 ${overNow} 项超出 +100%`:'全部异常项已调整至安全幅度内';
+}
+function applyBudgetAmpBatch(){
+  const op=BUDGET_FLOW.ampOp||'cap',basis=BUDGET_FLOW.ampBasis||'after',raw=BUDGET_FLOW.ampVal||'',amt=Number(raw),err=document.getElementById('budgetAmpErr');
+  if(op!=='cap'){
+    if(raw===''||!Number.isFinite(amt)||amt<0){if(err)err.textContent='请输入大于等于 0 的调整数值';return}
+    if(op==='decPct'&&amt>=100){if(err)err.textContent='降低比例需小于 100%';return}
+    if(op==='fixed'&&amt<1){if(err)err.textContent='预算不能低于 $1.00';return}
+  }
+  BUDGET_FLOW.ampOver.forEach(c=>{
+    if(op==='cap'){c.after=Math.round((c.before*2+Number.EPSILON)*100)/100;return}
+    const base=basis==='before'?c.before:(Number.isFinite(c.after)?c.after:c.before);
+    let next=base;
+    if(op==='decPct')next=base*(1-amt/100);
+    else if(op==='incPct')next=base*(1+amt/100);
+    else if(op==='decAmt')next=base-amt;
+    else if(op==='incAmt')next=base+amt;
+    else if(op==='fixed')next=amt;
+    c.after=Math.max(1,Math.round((next+Number.EPSILON)*100)/100);
+  });
+  renderBudgetAmplitudeModal();
+}
+function removeBudgetAmpSingle(idx){
+  const item=BUDGET_FLOW.ampOver.splice(idx,1)[0];
+  if(item)BUDGET_FLOW.final=BUDGET_FLOW.final.filter(x=>x!==item);
+  renderBudgetAmplitudeModal();
+}
+function removeBudgetAmpOver(submitAfter){
+  const toDrop=new Set(BUDGET_FLOW.ampOver.filter(isBudgetOver));
+  BUDGET_FLOW.ampOver=BUDGET_FLOW.ampOver.filter(c=>!toDrop.has(c));
+  BUDGET_FLOW.final=BUDGET_FLOW.final.filter(c=>!toDrop.has(c));
+  if(submitAfter){
+    if(!BUDGET_FLOW.final.length){closeBudgetFlow();toast('已移除全部偏高预算，无可提交的修改');return}
+    finishBudget();
+    toast(`已移除 ${toDrop.size} 项偏高预算，其余 ${BUDGET_FLOW.final.length} 项已提交（演示）`);
+    return;
+  }
+  renderBudgetAmplitudeModal();
+  toast(toDrop.size?`已移除 ${toDrop.size} 项偏高预算`:'当前没有超出 +100% 的偏高预算');
+}
+function confirmBudgetAmpSubmit(){
+  if(BUDGET_FLOW.ampOver.some(c=>!Number.isFinite(c.after)||c.after<1)){
+    const err=document.getElementById('budgetAmpErr');if(err)err.textContent='请确保所有预算不低于 $1.00';return;
+  }
+  finishBudget();
+}
 function finishBudget(){const approval=BUDGET_FLOW.approval,changes=BUDGET_FLOW.final;changes.forEach(c=>{if(approval)c.row.pendingBudget={before:c.before,after:c.after,note:BUDGET_FLOW.note};else c.row.budgetRisk.budget=c.after});closeBudgetFlow();renderAds();toast(approval?'已发起审批，预算尚未修改（本地演示）':'预算修改成功（本地演示）')}
 const renderOriginalAds=renderAds;renderAds=function(){renderOriginalAds();if(ADS.tab!=='campaign')return;const th=document.createElement('th');th.textContent='预算';th.style.minWidth='145px';document.getElementById('adsHead').insertBefore(th,document.getElementById('adsHead').children[4]);document.querySelectorAll('#adsTbody tr[data-set="ADS_ROWS"]').forEach(tr=>{const row=ADS_ROWS.find(r=>r.n===tr.dataset.key);const td=document.createElement('td');td.className='budget-cell';td.innerHTML='$'+row.budgetRisk.budget.toFixed(2)+'/日 <button class="budget-edit" aria-label="修改预算">✎</button>'+(row.pendingBudget?'<div class="risk-status approval-state">待审批 → $'+row.pendingBudget.after.toFixed(2)+'</div>':'');td.querySelector('button').onclick=()=>openBudgetChange(row.n);tr.insertBefore(td,tr.children[4])})};
 const toolbar=document.querySelector('#page-allads .toolbar');const picker=document.createElement('select');picker.className='budget-demo-picker';picker.setAttribute('aria-label','预算管控示例场景');picker.innerHTML='<option value="mixed">混合等级示例</option><option value="页面提醒">页面提醒示例</option><option value="飞书审批">飞书审批示例</option><option value="禁止操作">禁止操作示例</option><option value="amplitude">仅预算涨幅示例</option>';picker.onchange=()=>BUDGET_MODE=picker.value;toolbar.insertBefore(picker,toolbar.querySelector('.sp'));

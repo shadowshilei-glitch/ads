@@ -137,8 +137,28 @@ a:hover{text-decoration:underline}
 .modal-box{width:min(1060px,96vw);max-height:90vh;overflow:auto;border-radius:6px;box-shadow:0 12px 40px rgba(0,0,0,.22)}
 .modal-box .risk-table{min-width:780px}
 
-/* 仅幅度提醒表格 */
+/* 仅幅度提醒表格与直接调整/一键移除控件 */
 .amp-diff{color:var(--danger);font-weight:600}
+.amp-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 10px;background:#f7faff;border:1px solid #d9ecff;border-radius:4px}
+.amp-toolbar select,.amp-toolbar input{height:28px;border:1px solid var(--bd);border-radius:4px;padding:0 7px;font-size:12px;color:var(--ink);background:#fff}
+.amp-toolbar select{max-width:128px}
+.amp-toolbar input[type=number]{width:76px}
+.amp-toolbar button{height:28px;min-height:28px;padding:0 10px;font-size:12px}
+.amp-toolbar .amp-spacer{flex:1;min-width:8px}
+.amp-btn-danger{color:var(--danger);border-color:#fbc4c4;background:#fef0f0}
+.amp-btn-danger:hover{color:#fff;background:var(--danger);border-color:var(--danger)}
+.amp-btn-soft{color:var(--blue-d);border-color:#b3d8ff;background:#ecf5ff}
+.amp-btn-soft:hover{background:#d9ecff;border-color:var(--blue)}
+.amp-input-wrap{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 6px;border:1px solid var(--bd);border-radius:4px;background:#fff;width:96px}
+.amp-input-wrap:focus-within{border-color:var(--blue)}
+.amp-input-wrap span{color:var(--muted);font-size:11.5px;flex:none}
+.amp-input-wrap input{border:0;outline:none;padding:0;width:100%;min-width:0;font-size:12px;color:var(--ink);background:transparent}
+.amp-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap}
+.amp-badge.over{background:var(--danger-bg);color:var(--danger);border:1px solid #fbc4c4}
+.amp-badge.ok{background:#e8f8f2;color:#14764c;border:1px solid #b8ebd6}
+.amp-single-editor{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 12px;background:#fafbfd;border:1px solid #ebeef5;border-radius:4px}
+.amp-empty{padding:20px 12px;text-align:center;color:var(--muted);background:#fafbfd;border:1px dashed var(--bd);border-radius:4px}
+.amp-foot-note{font-size:12px;color:var(--muted);margin-right:auto}
 
 /* 广告活动复合编辑操作演练区 */
 .edit-spec-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 16px;margin-bottom:16px;padding:12px 14px;background:#f7faff;border:1px solid #d9ecff;border-radius:6px;font-size:12px;color:#485365}
@@ -891,105 +911,18 @@ function renderAllScenes() {
     </section>
   `).join('');
 
-  // 第 9 节：融合当前 HTML 内的幅度二次【风控提醒】弹窗示例
+  // 第 10 节：融合幅度二次【风控提醒】弹窗示例（支持一键移除偏高项 + 弹窗内直接调整）
   const amplitudeHtml = `
     <section class="scene-section" id="scene-amplitude">
       <div class="scene-head">
         <div class="scene-title">
           <h3>十、预算/竞价提升幅度二次【风控提醒】弹窗（手工修改超过预设幅度触发）</h3>
-          <span class="scene-tag">与管控提示分别判断，不相互替代</span>
+          <span class="scene-tag new">新增：一键移除偏高项 · 弹窗内直接调整</span>
         </div>
-        <div class="scene-desc">延续原手动修改幅度提醒：预算提升幅度 &gt; 100%、竞价提升幅度 &gt; 50% 时弹出二次确认，与上述【管控提示】独立判断。</div>
+        <div class="scene-desc">预算提升 &gt; 100%、竞价提升 &gt; 50% 时弹出二次确认；支持直接在弹窗内单条/批量调整修改后数值（针对大批 ASIN 截流调价场景），或一键移除仍超出幅度的偏高项后继续提交。</div>
       </div>
       <div class="double-grid">
-        <article class="risk-card">
-          <div class="risk-card-hd">
-            <div class="hd-title"><span>风控提醒</span><span class="scene-tag">预算单条修改 &gt; 100%</span></div>
-            <div class="hd-actions">
-              <button type="button" class="preview-btn" onclick="openAmplitudeModal('budgetSingle')">弹窗预览</button>
-              <button type="button" class="close-x" aria-label="关闭" onclick="toast('已取消预算修改')">×</button>
-            </div>
-          </div>
-          <div class="risk-card-bd">
-            <div class="risk-lead">修改预算：$20.00 → $50.00</div>
-            <div>提升幅度大于 <span class="amp-diff">100%</span>（当前 +150.00%），请确认是否继续？</div>
-          </div>
-          <div class="risk-card-ft">
-            <button type="button" onclick="toast('已取消修改')">取消</button>
-            <button type="button" class="primary" onclick="toast('已确认继续提交预算修改（演示）')">继续</button>
-          </div>
-        </article>
-
-        <article class="risk-card">
-          <div class="risk-card-hd">
-            <div class="hd-title"><span>风控提醒</span><span class="scene-tag">预算批量修改 &gt; 100%</span></div>
-            <div class="hd-actions">
-              <button type="button" class="preview-btn" onclick="openAmplitudeModal('budgetBatch')">弹窗预览</button>
-              <button type="button" class="close-x" aria-label="关闭" onclick="toast('已取消批量预算修改')">×</button>
-            </div>
-          </div>
-          <div class="risk-card-bd">
-            <div class="risk-lead">以下广告活动的预算提升幅度<span class="amp-diff">大于100%</span>，请确认是否继续？</div>
-            <div class="risk-table-wrap">
-              <table class="risk-table" style="min-width:420px">
-                <thead><tr><th>广告活动</th><th>当前预算</th><th>修改后预算</th></tr></thead>
-                <tbody>
-                  <tr><td><span class="tagmini">SP</span>DP-Category-AUTO-Sherry</td><td>$20.00/日</td><td>$55.00/日</td></tr>
-                  <tr><td><span class="tagmini sb">SB</span>2512W-Brand-Collection</td><td>$15.00/日</td><td>$40.00/日</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div class="risk-card-ft">
-            <button type="button" onclick="toast('已取消批量修改')">取消</button>
-            <button type="button" class="primary" onclick="toast('已确认继续提交批量预算修改（演示）')">继续</button>
-          </div>
-        </article>
-
-        <article class="risk-card">
-          <div class="risk-card-hd">
-            <div class="hd-title"><span>风控提醒</span><span class="scene-tag">竞价单条修改 &gt; 50%</span></div>
-            <div class="hd-actions">
-              <button type="button" class="preview-btn" onclick="openAmplitudeModal('bidSingle')">弹窗预览</button>
-              <button type="button" class="close-x" aria-label="关闭" onclick="toast('已取消竞价修改')">×</button>
-            </div>
-          </div>
-          <div class="risk-card-bd">
-            <div class="risk-lead">修改竞价：$0.80 → $1.50</div>
-            <div>提升幅度大于 <span class="amp-diff">50%</span>（当前 +87.50%），请确认是否继续？</div>
-          </div>
-          <div class="risk-card-ft">
-            <button type="button" onclick="toast('已取消竞价修改')">取消</button>
-            <button type="button" class="primary" onclick="toast('已确认继续提交竞价修改（演示）')">继续</button>
-          </div>
-        </article>
-
-        <article class="risk-card">
-          <div class="risk-card-hd">
-            <div class="hd-title"><span>风控提醒</span><span class="scene-tag">竞价批量修改 &gt; 50%</span></div>
-            <div class="hd-actions">
-              <button type="button" class="preview-btn" onclick="openAmplitudeModal('bidBatch')">弹窗预览</button>
-              <button type="button" class="close-x" aria-label="关闭" onclick="toast('已取消批量竞价修改')">×</button>
-            </div>
-          </div>
-          <div class="risk-card-bd">
-            <div class="risk-lead">以下投放/广告组的竞价提升幅度<span class="amp-diff">大于50%</span>，请确认是否继续？</div>
-            <div class="risk-table-wrap">
-              <table class="risk-table" style="min-width:420px">
-                <thead><tr><th>投放 / 广告组</th><th>当前竞价</th><th>修改后竞价</th></tr></thead>
-                <tbody>
-                  <tr><td>${tBadge('E', 'e', 'women ankle boots', true)}</td><td>$0.85</td><td>$1.60</td></tr>
-                  <tr><td>${tProd("ALLSWIFIT Walking Shoes...", 's', 's', 'B08XYZ1234')}</td><td>$0.75</td><td>$1.35</td></tr>
-                  <tr><td>Ankle-Boots-Exact（默认竞价）</td><td>$0.70</td><td>$1.20</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div class="risk-card-ft">
-            <button type="button" onclick="toast('已取消批量竞价修改')">取消</button>
-            <button type="button" class="primary" onclick="toast('已确认继续提交批量竞价修改（演示）')">继续</button>
-          </div>
-        </article>
+        ${['budgetSingle', 'budgetBatch', 'bidSingle', 'bidBatch'].map(k => `<div id="amp-card-host-${k}">${buildAmplitudeCardHtml(k, false)}</div>`).join('')}
       </div>
     </section>
   `;
@@ -999,6 +932,315 @@ function renderAllScenes() {
   // 填充顶部控制台下拉
   const sel = document.getElementById('pgScene');
   sel.innerHTML = SCENES.map(s => `<option value="${s.id}">${esc(s.title)}</option>`).join('');
+}
+
+const AMP_FIXTURES = {
+  budgetSingle: {
+    kind: 'budgetSingle',
+    mode: 'single',
+    domain: 'budget',
+    tag: '预算单条修改 > 100%',
+    thresholdPct: 100,
+    noun: '预算',
+    unitSuffix: '/日',
+    minVal: 1,
+    rows: [
+      { id: 'bs1', labelHtml: '<span class="tagmini">SP</span>DP-Category-AUTO-Sherry', before: 20, after: 50 }
+    ]
+  },
+  budgetBatch: {
+    kind: 'budgetBatch',
+    mode: 'batch',
+    domain: 'budget',
+    tag: '预算批量修改 > 100%',
+    thresholdPct: 100,
+    noun: '预算',
+    unitSuffix: '/日',
+    minVal: 1,
+    rows: [
+      { id: 'bb1', labelHtml: '<span class="tagmini">SP</span>DP-Category-AUTO-Sherry', before: 20, after: 55 },
+      { id: 'bb2', labelHtml: '<span class="tagmini sb">SB</span>2512W-Brand-Collection', before: 15, after: 40 },
+      { id: 'bb3', labelHtml: '<span class="tagmini">SP</span>26001W-Mens-Casual-AUTO', before: 30, after: 75 }
+    ]
+  },
+  bidSingle: {
+    kind: 'bidSingle',
+    mode: 'single',
+    domain: 'bid',
+    tag: '竞价单条修改 > 50%',
+    thresholdPct: 50,
+    noun: '竞价',
+    unitSuffix: '',
+    minVal: 0.02,
+    rows: [
+      { id: 'ids1', labelHtml: tProd("ALLSWIFIT Walking Shoes...", 'e', 'e', 'B08XYZ1234'), before: 0.80, after: 1.50 }
+    ]
+  },
+  bidBatch: {
+    kind: 'bidBatch',
+    mode: 'batch',
+    domain: 'bid',
+    tag: '竞价批量修改 > 50%（ASIN截流场景）',
+    thresholdPct: 50,
+    noun: '竞价',
+    unitSuffix: '',
+    minVal: 0.02,
+    rows: [
+      { id: 'idb1', labelHtml: tBadge('E', 'e', 'women ankle boots', true), before: 0.85, after: 1.60 },
+      { id: 'idb2', labelHtml: tProd("ALLSWIFIT Walking Shoes...", 's', 's', 'B08XYZ1234'), before: 0.75, after: 1.35 },
+      { id: 'idb3', labelHtml: tProd("DREAM PAIRS Snow Boots...", 'e', 'e', 'B09KLM5678'), before: 0.90, after: 1.70 },
+      { id: 'idb4', labelHtml: 'Ankle-Boots-Exact（默认竞价）', before: 0.70, after: 1.20 }
+    ]
+  }
+};
+
+let AMP_STATE = Object.fromEntries(
+  Object.entries(AMP_FIXTURES).map(([k, v]) => [k, { ...structuredClone(v), batchBasis: 'after', batchOp: 'cap', batchVal: '' }])
+);
+
+function ampPct(row) {
+  if (!row.before || !Number.isFinite(row.after)) return 0;
+  return (row.after - row.before) / row.before * 100;
+}
+function isAmpOver(row, thresholdPct) {
+  return ampPct(row) > thresholdPct + 1e-6;
+}
+function ampCapValue(row, thresholdPct) {
+  return Math.round((row.before * (1 + thresholdPct / 100) + Number.EPSILON) * 100) / 100;
+}
+
+function buildAmplitudeCardHtml(kind, inModal = false) {
+  const st = AMP_STATE[kind];
+  const uid = (inModal ? 'modal-' : 'card-') + kind;
+  const overCount = st.rows.filter(r => isAmpOver(r, st.thresholdPct)).length;
+  const closeFn = inModal ? 'closeModal()' : `toast('已取消${st.noun}修改')`;
+
+  let bodyHtml = '';
+  if (!st.rows.length) {
+    bodyHtml = `
+      <div class="amp-empty">
+        <div>已移除全部超出 +${st.thresholdPct}% 的异常${st.noun}项，当前暂无待提交的异常调整。</div>
+        <div style="margin-top:10px"><button type="button" class="amp-btn-soft" onclick="resetAmpState('${kind}',${inModal})">恢复示例数据</button></div>
+      </div>`;
+  } else if (st.mode === 'single') {
+    const r = st.rows[0];
+    const pct = ampPct(r);
+    const over = isAmpOver(r, st.thresholdPct);
+    const capVal = ampCapValue(r, st.thresholdPct);
+    bodyHtml = `
+      <div class="risk-lead">
+        修改${st.noun}：$${r.before.toFixed(2)}${st.unitSuffix} →
+        <span class="amp-input-wrap"><span>$</span><input type="number" min="${st.minVal}" step="0.01" aria-label="修改后${st.noun}" value="${Number.isFinite(r.after) ? r.after.toFixed(2) : ''}" oninput="updateAmpRow('${kind}',0,this.value,'${uid}')"></span>
+        <span id="amp-badge-${uid}-0" class="amp-badge ${over ? 'over' : 'ok'}">${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%${over ? ' · 超限' : ' · 已达标'}</span>
+      </div>
+      <div>${over ? `提升幅度大于 <span class="amp-diff">${st.thresholdPct}%</span>，请确认是否继续，或直接调整数值 / 一键移除该偏高项：` : `已调整至 +${st.thresholdPct}% 安全阈值内，可直接确认继续提交：`}</div>
+      <div class="amp-single-editor">
+        <button type="button" class="amp-btn-soft" onclick="capSingleAmpRow('${kind}',${inModal})">按上限 +${st.thresholdPct}% 调整（$${capVal.toFixed(2)}）</button>
+        <button type="button" class="amp-btn-danger" onclick="removeAmpOverItems('${kind}',${inModal})">一键移除偏高${st.noun}</button>
+        <button type="button" onclick="resetAmpState('${kind}',${inModal})">重置示例</button>
+      </div>`;
+  } else {
+    const colTarget = st.domain === 'budget' ? '广告活动' : '投放 / 广告组';
+    const colBefore = `当前${st.noun}`;
+    const colAfter = `修改后${st.noun}（可直接调整）`;
+    const needInput = st.batchOp !== 'cap';
+    bodyHtml = `
+      <div class="risk-lead">以下${colTarget}的${st.noun}提升幅度<span class="amp-diff">大于${st.thresholdPct}%</span>（共 ${st.rows.length} 项，其中 <span id="amp-overcnt-${uid}" class="amp-diff">${overCount}</span> 项超限），可直接微调或一键移除偏高项：</div>
+      <div class="amp-toolbar" aria-label="异常项批量调整">
+        <select aria-label="调整基准" onchange="AMP_STATE['${kind}'].batchBasis=this.value">
+          <option value="after" ${st.batchBasis === 'after' ? 'selected' : ''}>基于修改后${st.noun}</option>
+          <option value="before" ${st.batchBasis === 'before' ? 'selected' : ''}>基于当前${st.noun}</option>
+        </select>
+        <select aria-label="批量调整方式" onchange="changeAmpBatchOp('${kind}',this.value,${inModal})">
+          <option value="cap" ${st.batchOp === 'cap' ? 'selected' : ''}>按+${st.thresholdPct}%上限封顶</option>
+          <option value="decPct" ${st.batchOp === 'decPct' ? 'selected' : ''}>降低(%)</option>
+          <option value="incPct" ${st.batchOp === 'incPct' ? 'selected' : ''}>提高(%)</option>
+          <option value="decAmt" ${st.batchOp === 'decAmt' ? 'selected' : ''}>降低($)</option>
+          <option value="incAmt" ${st.batchOp === 'incAmt' ? 'selected' : ''}>提高($)</option>
+          <option value="fixed" ${st.batchOp === 'fixed' ? 'selected' : ''}>固定为($)</option>
+        </select>
+        ${needInput ? `<input id="amp-bval-${uid}" type="number" min="0" step="0.01" placeholder="数值" value="${esc(st.batchVal)}" oninput="AMP_STATE['${kind}'].batchVal=this.value">` : ''}
+        <button type="button" class="amp-btn-soft" onclick="applyAmpBatch('${kind}',${inModal})">批量应用</button>
+        <span class="amp-spacer"></span>
+        <button type="button" id="amp-rm-${uid}" class="amp-btn-danger" onclick="removeAmpOverItems('${kind}',${inModal})">一键移除偏高${st.noun}${overCount ? ` (${overCount})` : ''}</button>
+        <button type="button" onclick="resetAmpState('${kind}',${inModal})">重置</button>
+      </div>
+      <div class="risk-table-wrap">
+        <table class="risk-table" style="min-width:460px">
+          <thead>
+            <tr>
+              <th style="width:34%">${colTarget}</th>
+              <th style="width:16%">${colBefore}</th>
+              <th style="width:22%">${colAfter}</th>
+              <th style="width:18%">提升幅度</th>
+              <th style="width:10%">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${st.rows.map((r, i) => {
+              const pct = ampPct(r);
+              const over = isAmpOver(r, st.thresholdPct);
+              return `<tr>
+                <td>${r.labelHtml}</td>
+                <td>$${r.before.toFixed(2)}${st.unitSuffix}</td>
+                <td><span class="amp-input-wrap"><span>$</span><input type="number" min="${st.minVal}" step="0.01" aria-label="修改后${st.noun} ${i + 1}" value="${Number.isFinite(r.after) ? r.after.toFixed(2) : ''}" oninput="updateAmpRow('${kind}',${i},this.value,'${uid}')"></span></td>
+                <td><span id="amp-badge-${uid}-${i}" class="amp-badge ${over ? 'over' : 'ok'}">${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%${over ? ' 超限' : ' 正常'}</span></td>
+                <td><span class="obj-link" style="color:var(--danger)" onclick="removeAmpRow('${kind}',${i},${inModal})">移除</span></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  return `
+    <article class="risk-card">
+      <div class="risk-card-hd">
+        <div class="hd-title"><span>风控提醒</span><span class="scene-tag">${esc(st.tag)}</span></div>
+        <div class="hd-actions">
+          ${inModal ? '' : `<button type="button" class="preview-btn" onclick="openAmplitudeModal('${kind}')">弹窗预览</button>`}
+          <button type="button" class="close-x" aria-label="关闭" onclick="${closeFn}">×</button>
+        </div>
+      </div>
+      <div class="risk-card-bd">${bodyHtml}</div>
+      <div class="risk-card-ft">
+        <span class="amp-foot-note" id="amp-foot-${uid}">${st.rows.length ? (overCount ? `当前仍有 ${overCount} 项超出 +${st.thresholdPct}%，可调整后确认或一键移除` : `全部 ${st.rows.length} 项均已调整至安全幅度内`) : '当前已清空异常项'}</span>
+        <button type="button" onclick="${closeFn}">取消</button>
+        ${st.mode === 'batch' && overCount > 0 ? `<button type="button" class="amp-btn-danger" onclick="removeAmpOverAndSubmit('${kind}',${inModal})">一键移除偏高项并继续</button>` : ''}
+        <button type="button" class="primary" ${!st.rows.length ? 'disabled' : ''} onclick="confirmAmpSubmit('${kind}',${inModal})">确认并继续</button>
+      </div>
+    </article>`;
+}
+
+function refreshAmplitudeHost(kind, inModal) {
+  const cardHost = document.getElementById('amp-card-host-' + kind);
+  if (cardHost) cardHost.innerHTML = buildAmplitudeCardHtml(kind, false);
+  if (inModal) document.getElementById('modalBox').innerHTML = buildAmplitudeCardHtml(kind, true);
+}
+
+function updateAmpRow(kind, idx, rawVal, uid) {
+  const st = AMP_STATE[kind];
+  const r = st.rows[idx];
+  if (!r) return;
+  const val = Number(rawVal);
+  r.after = rawVal.trim() === '' || !Number.isFinite(val) ? NaN : val;
+  const badge = document.getElementById(`amp-badge-${uid}-${idx}`);
+  if (badge) {
+    if (!Number.isFinite(r.after) || r.after <= 0) {
+      badge.className = 'amp-badge over';
+      badge.textContent = '请输入有效数值';
+    } else {
+      const pct = ampPct(r);
+      const over = isAmpOver(r, st.thresholdPct);
+      badge.className = `amp-badge ${over ? 'over' : 'ok'}`;
+      badge.textContent = `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%${over ? (st.mode === 'single' ? ' · 超限' : ' 超限') : (st.mode === 'single' ? ' · 已达标' : ' 正常')}`;
+    }
+  }
+  const overCount = st.rows.filter(x => isAmpOver(x, st.thresholdPct)).length;
+  const cntEl = document.getElementById(`amp-overcnt-${uid}`);
+  if (cntEl) cntEl.textContent = String(overCount);
+  const rmBtn = document.getElementById(`amp-rm-${uid}`);
+  if (rmBtn) rmBtn.textContent = `一键移除偏高${st.noun}${overCount ? ` (${overCount})` : ''}`;
+  const footEl = document.getElementById(`amp-foot-${uid}`);
+  if (footEl) {
+    footEl.textContent = overCount
+      ? `当前仍有 ${overCount} 项超出 +${st.thresholdPct}%，可调整后确认或一键移除`
+      : `全部 ${st.rows.length} 项均已调整至安全幅度内`;
+  }
+}
+
+function capSingleAmpRow(kind, inModal) {
+  const st = AMP_STATE[kind];
+  if (!st.rows.length) return;
+  st.rows[0].after = ampCapValue(st.rows[0], st.thresholdPct);
+  refreshAmplitudeHost(kind, inModal);
+  toast(`已按上限 +${st.thresholdPct}% 调整为 $${st.rows[0].after.toFixed(2)}`);
+}
+
+function changeAmpBatchOp(kind, op, inModal) {
+  AMP_STATE[kind].batchOp = op;
+  refreshAmplitudeHost(kind, inModal);
+}
+
+function applyAmpBatch(kind, inModal) {
+  const st = AMP_STATE[kind];
+  const op = st.batchOp;
+  const amt = Number(st.batchVal);
+  if (op !== 'cap') {
+    if (st.batchVal === '' || !Number.isFinite(amt) || amt < 0) {
+      toast('请输入大于等于 0 的有效调整数值');
+      return;
+    }
+    if (op === 'decPct' && amt >= 100) {
+      toast('降低比例需小于 100%');
+      return;
+    }
+    if (op === 'fixed' && amt < st.minVal) {
+      toast(`固定值不能低于 $${st.minVal.toFixed(2)}`);
+      return;
+    }
+  }
+  st.rows.forEach(r => {
+    if (op === 'cap') {
+      r.after = ampCapValue(r, st.thresholdPct);
+      return;
+    }
+    const base = st.batchBasis === 'before' ? r.before : (Number.isFinite(r.after) ? r.after : r.before);
+    let next = base;
+    if (op === 'decPct') next = base * (1 - amt / 100);
+    else if (op === 'incPct') next = base * (1 + amt / 100);
+    else if (op === 'decAmt') next = base - amt;
+    else if (op === 'incAmt') next = base + amt;
+    else if (op === 'fixed') next = amt;
+    r.after = Math.max(st.minVal, Math.round((next + Number.EPSILON) * 100) / 100);
+  });
+  refreshAmplitudeHost(kind, inModal);
+  toast(`已对 ${st.rows.length} 项应用批量调整`);
+}
+
+function removeAmpRow(kind, idx, inModal) {
+  const st = AMP_STATE[kind];
+  st.rows.splice(idx, 1);
+  refreshAmplitudeHost(kind, inModal);
+  toast('已移除该调整项');
+}
+
+function removeAmpOverItems(kind, inModal) {
+  const st = AMP_STATE[kind];
+  const beforeLen = st.rows.length;
+  st.rows = st.rows.filter(r => !isAmpOver(r, st.thresholdPct));
+  const removed = beforeLen - st.rows.length;
+  refreshAmplitudeHost(kind, inModal);
+  toast(removed ? `已一键移除 ${removed} 项超出 +${st.thresholdPct}% 的偏高${st.noun}` : `当前没有超出 +${st.thresholdPct}% 的偏高${st.noun}`);
+}
+
+function removeAmpOverAndSubmit(kind, inModal) {
+  const st = AMP_STATE[kind];
+  const removed = st.rows.filter(r => isAmpOver(r, st.thresholdPct)).length;
+  st.rows = st.rows.filter(r => !isAmpOver(r, st.thresholdPct));
+  if (inModal) closeModal();
+  else refreshAmplitudeHost(kind, false);
+  toast(st.rows.length
+    ? `已一键移除 ${removed} 项偏高${st.noun}，其余 ${st.rows.length} 项正常继续提交（演示）`
+    : `已移除全部 ${removed} 项偏高${st.noun}，其余无偏高项已继续提交（演示）`);
+}
+
+function resetAmpState(kind, inModal) {
+  AMP_STATE[kind] = { ...structuredClone(AMP_FIXTURES[kind]), batchBasis: 'after', batchOp: 'cap', batchVal: '' };
+  refreshAmplitudeHost(kind, inModal);
+}
+
+function confirmAmpSubmit(kind, inModal) {
+  const st = AMP_STATE[kind];
+  if (st.rows.some(r => !Number.isFinite(r.after) || r.after < st.minVal)) {
+    toast(`请确保所有修改后${st.noun}不低于 $${st.minVal.toFixed(2)}`);
+    return;
+  }
+  if (inModal) closeModal();
+  const overCount = st.rows.filter(r => isAmpOver(r, st.thresholdPct)).length;
+  toast(overCount
+    ? `已确认提交 ${st.rows.length} 项${st.noun}修改（含 ${overCount} 项高幅度确认，演示）`
+    : `已按页面内调整后的数值提交全部 ${st.rows.length} 项${st.noun}修改（演示）`);
 }
 
 function openSceneModal(sceneId, level) {
@@ -1012,37 +1254,7 @@ function openPlaygroundModal() {
 }
 
 function openAmplitudeModal(kind) {
-  const map = {
-    budgetSingle: {
-      title: '风控提醒',
-      body: '<div class="risk-lead">修改预算：$20.00 → $50.00</div><div>提升幅度大于 <span class="amp-diff">100%</span>（当前 +150.00%），请确认是否继续？</div>'
-    },
-    budgetBatch: {
-      title: '风控提醒',
-      body: '<div class="risk-lead">以下广告活动的预算提升幅度<span class="amp-diff">大于100%</span>，请确认是否继续？</div><div class="risk-table-wrap"><table class="risk-table" style="min-width:420px"><thead><tr><th>广告活动</th><th>当前预算</th><th>修改后预算</th></tr></thead><tbody><tr><td><span class="tagmini">SP</span>DP-Category-AUTO-Sherry</td><td>$20.00/日</td><td>$55.00/日</td></tr><tr><td><span class="tagmini sb">SB</span>2512W-Brand-Collection</td><td>$15.00/日</td><td>$40.00/日</td></tr></tbody></table></div>'
-    },
-    bidSingle: {
-      title: '风控提醒',
-      body: '<div class="risk-lead">修改竞价：$0.80 → $1.50</div><div>提升幅度大于 <span class="amp-diff">50%</span>（当前 +87.50%），请确认是否继续？</div>'
-    },
-    bidBatch: {
-      title: '风控提醒',
-      body: '<div class="risk-lead">以下投放/广告组的竞价提升幅度<span class="amp-diff">大于50%</span>，请确认是否继续？</div><div class="risk-table-wrap"><table class="risk-table" style="min-width:420px"><thead><tr><th>投放 / 广告组</th><th>当前竞价</th><th>修改后竞价</th></tr></thead><tbody><tr><td>' + tBadge('E', 'e', 'women ankle boots', true) + '</td><td>$0.85</td><td>$1.60</td></tr><tr><td>' + tProd("ALLSWIFIT Walking Shoes...", 's', 's', 'B08XYZ1234') + '</td><td>$0.75</td><td>$1.35</td></tr><tr><td>Ankle-Boots-Exact（默认竞价）</td><td>$0.70</td><td>$1.20</td></tr></tbody></table></div>'
-    }
-  };
-  const cfg = map[kind];
-  document.getElementById('modalBox').innerHTML = `
-    <article class="risk-card">
-      <div class="risk-card-hd">
-        <div class="hd-title"><span>${cfg.title}</span></div>
-        <button type="button" class="close-x" aria-label="关闭" onclick="closeModal()">×</button>
-      </div>
-      <div class="risk-card-bd">${cfg.body}</div>
-      <div class="risk-card-ft">
-        <button type="button" onclick="closeModal()">取消</button>
-        <button type="button" class="primary" onclick="closeModal();toast('已确认继续提交（演示）')">继续</button>
-      </div>
-    </article>`;
+  document.getElementById('modalBox').innerHTML = buildAmplitudeCardHtml(kind, true);
   document.getElementById('modalMask').classList.add('on');
 }
 
