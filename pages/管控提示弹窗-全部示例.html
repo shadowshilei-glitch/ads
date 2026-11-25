@@ -1,0 +1,1372 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>管控提示弹窗 · 全部维度与动作示例 - ADS</title>
+<style>
+:root{
+  --blue:#409eff; --blue-d:#146ed5; --blue-bg:#ecf5ff; --blue-bd:#b3d8ff;
+  --bg:#f5f7fa; --surface:#ffffff; --line:#e4e7ed; --bd:#dcdfe6;
+  --ink:#303133; --text:#606266; --muted:#909399;
+  --warn:#e6a23c; --warn-bg:#fdf6ec; --danger:#f56c6c; --danger-bg:#fef0f0;
+  --success:#67c23a; --radius:6px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.6 Arial,"Microsoft YaHei","PingFang SC",sans-serif}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;border:1px solid var(--bd);background:#fff;color:var(--text);border-radius:4px;padding:6px 14px;min-height:32px}
+button:hover{color:var(--blue);border-color:#a0cfff}
+button.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+button.primary:hover{background:#2d8cf0;border-color:#2d8cf0;color:#fff}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* 顶部栏 */
+.topbar{position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid #ebeef5;padding:12px 24px;display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;color:var(--ink)}
+.brand-badge{background:var(--blue-bg);color:var(--blue);border:1px solid #d9ecff;border-radius:4px;font-size:12px;font-weight:500;padding:2px 8px}
+.top-links{margin-left:auto;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.top-links .btn-link{display:inline-flex;align-items:center;height:30px;padding:0 12px;border:1px solid var(--bd);border-radius:4px;background:#fff;color:var(--text);font-size:12px;text-decoration:none}
+.top-links .btn-link:hover{border-color:var(--blue);color:var(--blue);text-decoration:none}
+
+/* 锚点与控制条 */
+.nav-strip{background:#fff;border-bottom:1px solid #ebeef5;padding:10px 24px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.nav-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:16px;background:#f4f4f5;color:var(--text);font-size:12px;border:1px solid transparent;cursor:pointer;text-decoration:none}
+.nav-pill:hover{background:var(--blue-bg);color:var(--blue);text-decoration:none}
+.nav-pill.active{background:var(--blue);color:#fff;font-weight:600}
+.nav-pill .dim-badge{font-size:10px;padding:0 5px;border-radius:8px;background:#ffffff30}
+
+.container{max-width:1760px;margin:0 auto;padding:18px 24px 50px;display:grid;gap:24px}
+
+/* 交互体验控制台 */
+.playground{background:#fff;border:1px solid var(--line);border-radius:8px;padding:16px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px}
+.playground h2{margin:0;font-size:15px;font-weight:600;margin-right:6px}
+.pg-field{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--text)}
+.pg-field select{height:32px;border:1px solid var(--bd);border-radius:4px;padding:0 10px;color:var(--ink);background:#fff}
+.pg-note{font-size:12px;color:var(--muted);margin-left:auto}
+
+/* 分组章节 */
+.scene-section{background:#fff;border:1px solid var(--line);border-radius:8px;padding:20px;scroll-margin-top:76px}
+.scene-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #f0f2f5}
+.scene-title{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.scene-title h3{margin:0;font-size:16px;font-weight:600}
+.scene-tag{font-size:12px;padding:2px 8px;border-radius:4px;background:var(--blue-bg);color:var(--blue);border:1px solid #d9ecff}
+.scene-tag.new{background:#e8f8f2;color:#14764c;border-color:#b8ebd6}
+.scene-desc{font-size:12px;color:var(--muted)}
+
+/* 三态平铺网格 */
+.triple-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+.double-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+@media(max-width:1420px){.triple-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:960px){.triple-grid,.double-grid{grid-template-columns:1fr}}
+
+/* 管控弹窗卡片（与真实弹窗同构） */
+.risk-card{background:#fff;border:1px solid #dcdfe6;border-radius:4px;box-shadow:0 4px 16px #00000012;display:flex;flex-direction:column;overflow:hidden}
+.risk-card-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #ebeef5;background:#fff}
+.risk-card-hd .hd-title{font-size:14px;font-weight:500;color:#303133;display:flex;align-items:center;gap:8px}
+.risk-card-hd .hd-actions{display:flex;align-items:center;gap:8px}
+.risk-card-hd .preview-btn{height:24px;min-height:24px;padding:0 8px;font-size:11px;color:var(--blue);border-color:#c6e2ff;background:#ecf5ff}
+.risk-card-hd .close-x{border:0;background:none;color:#909399;padding:0 4px;min-height:24px;font-size:16px;line-height:1}
+.risk-card-bd{padding:16px;font-size:12px;color:#303133;display:grid;gap:12px}
+.risk-lead{font-size:13px;color:#303133;line-height:1.6}
+.risk-level{font-size:13px;font-weight:500;color:var(--warn)}
+.risk-level.block{color:var(--danger)}
+.risk-sub{font-size:12px;color:#303133;font-weight:500;margin-top:2px}
+
+.risk-table-wrap{overflow-x:auto;border:1px solid #dcdfe6}
+.risk-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;min-width:0}
+.risk-table th,.risk-table td{border:1px solid #dcdfe6;padding:7px 6px;text-align:left;vertical-align:middle;line-height:1.5;overflow-wrap:anywhere;word-break:break-word}
+.risk-table th{background:#fafafa;color:#606266;font-weight:500}
+.risk-table tbody tr:hover{background:#f9fbff}
+.triple-grid .risk-table{font-size:11.5px}
+.triple-grid .risk-table th,.triple-grid .risk-table td{padding:6px 5px}
+.obj-link{color:var(--blue);cursor:pointer;display:inline-block}
+.obj-link:hover{text-decoration:underline}
+.lvl-inline{display:inline-block;margin-top:2px}
+.lvl-inline.warn{color:var(--warn)}
+.lvl-inline.block{color:var(--danger)}
+.rule-cond-sep{color:#909399;font-size:11px;margin:2px 0}
+.tagmini{display:inline-block;padding:0 5px;height:18px;line-height:16px;font-size:10px;border-radius:3px;background:#fff7e6;color:#d46b08;border:1px solid #ffd591;margin-right:4px}
+.tagmini.sb{background:#f9f0ff;color:#722ed1;border-color:#d3adf7}
+
+/* 投放标准样式（参考图二） */
+.t-item{display:flex;align-items:center;gap:5px;min-width:0;line-height:1.4}
+.t-badge{width:16px;height:16px;flex:none;border-radius:50%;color:#fff;font-style:normal;font-size:10px;font-weight:700;text-transform:uppercase;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+.t-badge.e{background:#f59a23}
+.t-badge.p{background:#5b73a0}
+.t-badge.b{background:#2f74ff}
+.t-badge.t{background:#00a6e0}
+.t-badge.s{background:#9b59b6}
+.t-badge.a{background:#5b73a0}
+.t-prod{display:flex;align-items:center;gap:6px;min-width:0}
+.t-thumb{width:28px;height:28px;flex:none;border:1px solid #dcdfe6;border-radius:3px;background:#f5f7fa;display:inline-flex;align-items:center;justify-content:center;overflow:hidden}
+.t-thumb svg{width:22px;height:22px;display:block}
+.t-prod-info{min-width:0;flex:1;display:grid;gap:2px}
+.t-prod-title{font-size:11.5px;color:#303133;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-sub{font-size:11.5px;color:#606266;line-height:1.45}
+.t-spec-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px;padding:12px 14px;background:#fafbfd;border:1px solid #ebeef5;border-radius:6px}
+@media(max-width:1100px){.t-spec-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.t-spec-grid{grid-template-columns:1fr}}
+.t-spec-col h4{margin:0 0 8px;font-size:12px;font-weight:600;color:#303133}
+.t-spec-group{font-size:11px;color:#606266;font-weight:600;margin:8px 0 5px}
+.t-spec-list{display:grid;gap:5px;font-size:11.5px}
+
+/* 处理方式与审批备注 */
+.risk-choice-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;font-size:12px;color:#303133;margin-top:2px}
+.risk-choice-label{color:#606266;white-space:nowrap}
+.req{color:var(--danger);margin-right:2px}
+.risk-choice-row label{display:inline-flex;align-items:center;gap:6px;cursor:pointer;color:#303133}
+.risk-choice-row input[type=radio]{accent-color:var(--blue);margin:0}
+
+.approval-box{display:grid;gap:6px}
+.approval-box[hidden]{display:none}
+.approval-label{font-size:12px;color:#606266}
+.textarea-wrap{position:relative}
+.textarea-wrap textarea{width:100%;height:74px;border:1px solid #dcdfe6;border-radius:4px;padding:8px 10px 20px;font-size:12px;color:#303133;resize:vertical}
+.textarea-wrap textarea:focus{outline:none;border-color:var(--blue)}
+.char-count{position:absolute;right:8px;bottom:6px;font-size:11px;color:#909399;pointer-events:none}
+.risk-err{color:var(--danger);font-size:12px;min-height:16px}
+
+.risk-card-ft{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:10px 16px 14px;border-top:1px solid #f2f4f7;background:#fff}
+.risk-card-ft button{height:30px;min-height:30px;padding:0 14px;font-size:12px}
+
+/* 真实模态弹层 */
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;align-items:center;justify-content:center;padding:24px}
+.modal-mask.on{display:flex}
+.modal-box{width:min(1060px,96vw);max-height:90vh;overflow:auto;border-radius:6px;box-shadow:0 12px 40px rgba(0,0,0,.22)}
+.modal-box .risk-table{min-width:780px}
+
+/* 仅幅度提醒表格 */
+.amp-diff{color:var(--danger);font-weight:600}
+
+/* 广告活动复合编辑操作演练区 */
+.edit-spec-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 16px;margin-bottom:16px;padding:12px 14px;background:#f7faff;border:1px solid #d9ecff;border-radius:6px;font-size:12px;color:#485365}
+.edit-spec-fields{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px;color:var(--text)}
+.edit-spec-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;background:#fff;border:1px solid #dcdfe6;font-size:11.5px}
+.edit-spec-chip.hit{border-color:#ffd591;background:#fffbf0;color:#ad6800}
+.edit-form-banner{background:#f7faff;border:1px solid #d9ecff;border-radius:6px;padding:10px 14px;color:#485365;font-size:12.5px;line-height:1.6}
+.edit-form-grid{display:grid;grid-template-columns:170px minmax(0,1fr);gap:12px;align-items:center;font-size:12.5px}
+@media(max-width:640px){.edit-form-grid{grid-template-columns:1fr}}
+.edit-form-grid label{text-align:right;color:var(--text)}
+@media(max-width:640px){.edit-form-grid label{text-align:left}}
+.edit-form-grid input,.edit-form-grid select{height:32px;border:1px solid var(--bd);border-radius:4px;padding:0 10px;color:var(--ink);background:#fff}
+.edit-form-grid .hint{color:var(--muted);font-size:12px;margin-left:6px}
+.foot-hint{font-size:12px;color:var(--muted);margin-right:auto}
+
+/* Toast 非模态反馈 */
+#toast{position:fixed;top:72px;left:50%;transform:translateX(-50%);background:#303133;color:#fff;padding:9px 18px;border-radius:6px;font-size:13px;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,.24);display:none;max-width:90vw}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span>ADS 管控提示弹窗 · 全部维度与动作示例</span>
+    <span class="brand-badge">统一格式预览</span>
+  </div>
+  <div class="top-links">
+    <a class="btn-link" href="风控规则配置-控制动作扩展.html" target="_blank">风控规则配置 ↗</a>
+    <a class="btn-link" href="全部广告-预算管控提示示例.html" target="_blank">全部广告预算示例 ↗</a>
+  </div>
+</header>
+
+<nav class="nav-strip" aria-label="场景快速跳转">
+  <a class="nav-pill active" href="#scene-create">1. 新增（活动/广告组/商品广告）</a>
+  <a class="nav-pill" href="#scene-campaign-enable">2. 广告活动 · 启用</a>
+  <a class="nav-pill" href="#scene-campaign-budget">3. 广告活动 · 修改预算</a>
+  <a class="nav-pill" href="#scene-campaign-placement">4. 广告活动 · 广告位比例</a>
+  <a class="nav-pill" href="#scene-campaign-composite">5. 广告活动 · 编辑（复合风控）</a>
+  <a class="nav-pill" href="#scene-adgroup-enable">6. 广告组 · 启用</a>
+  <a class="nav-pill" href="#scene-adgroup-bid">7. 广告组 · 修改默认竞价</a>
+  <a class="nav-pill" href="#scene-targeting-bid">8. 投放 · 修改竞价（新增格式）</a>
+  <a class="nav-pill" href="#scene-product-enable">9. 商品/广告 · 启用</a>
+  <a class="nav-pill" href="#scene-amplitude">10. 涨幅二次【风控提醒】</a>
+</nav>
+
+<main class="container">
+  <section class="playground" aria-label="交互弹窗实时演练">
+    <h2>交互弹窗实时试算</h2>
+    <label class="pg-field">
+      <span>场景维度与动作</span>
+      <select id="pgScene"></select>
+    </label>
+    <label class="pg-field">
+      <span>最高管控等级</span>
+      <select id="pgLevel">
+        <option value="页面提醒">页面提醒</option>
+        <option value="飞书审批">飞书审批</option>
+        <option value="禁止操作">禁止操作</option>
+      </select>
+    </label>
+    <button type="button" class="primary" onclick="openPlaygroundModal()">打开交互弹窗预览</button>
+    <button type="button" onclick="openCampaignEditModal()">打开「编辑广告活动」操作弹窗</button>
+    <span class="pg-note">下方每个场景均支持直接在卡片内切换处理方式、输入审批备注，或点击「弹窗预览」体验真实遮罩弹窗。</span>
+  </section>
+
+  <div id="scenesRoot"></div>
+</main>
+
+<div id="modalMask" class="modal-mask" role="dialog" aria-modal="true" aria-label="管控提示交互弹窗">
+  <div id="modalBox" class="modal-box"></div>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let toastTimer = null;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.style.display = 'none'; }, 3200);
+}
+
+const thumbSvg='<svg viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="2" fill="#e6f2ff"/><circle cx="8" cy="8.5" r="2" fill="#fff"/><path d="M2 19l6-6.5 4.2 4.3 3.3-3.5L22 19H2z" fill="#1890ff"/></svg>';
+const tBadge=(ch,cls,text,isLink=false)=>`<div class="t-item"><i class="t-badge ${cls}">${ch}</i>${isLink?`<span class="obj-link" onclick="toast('查看投放详情：${esc(text)}')">${esc(text)}</span>`:`<span>${esc(text)}</span>`}</div>`;
+const tProd=(title,ch,cls,asin)=>`<div class="t-prod"><span class="t-thumb">${thumbSvg}</span><div class="t-prod-info"><div class="t-prod-title" title="${esc(title)}">${esc(title)}</div>${tBadge(ch,cls,asin,true)}</div></div>`;
+const LEVELS = ['页面提醒', '飞书审批', '禁止操作'];
+
+// 统一弹窗场景定义（按维度 + 动作区分格式与动态文案）
+const SCENES = [
+  {
+    id: 'scene-create',
+    title: '一、新增 — 涉及新增广告活动、广告组、商品/广告',
+    badge: '沿用原新增格式',
+    isNewFormat: false,
+    desc: '按操作对象提取 MSKU/ASIN 匹配规则；展示 5 列：MSKU/ASIN、Style、管控规则名称、管控规则、当前表现。',
+    mode: 'create',
+    dimension: 'MSKU/ASIN',
+    actionLabel: '新增',
+    leadText: () => '以下信息触发了管控规则，请确认是否继续？',
+    tableTitle: '触发规则的MSKU/ASIN：',
+    columns: [
+      { key: 'name', label: 'MSKU/ASIN', width: '14%' },
+      { key: 'style', label: 'Style', width: '14%' },
+      { key: 'rule', label: '管控规则名称', width: '17%' },
+      { key: 'cond', label: '管控规则', width: '31%' },
+      { key: 'perf', label: '当前表现', width: '24%' }
+    ],
+    rows: [
+      {
+        name: 'msku1111',
+        style: 'Style111<br>（销售负责人）',
+        ruleName: 'EOL定位管控',
+        cond: '店铺：amazon/US/topshoesUS<br>style定位包含EOL 且 上月Style毛利率≤2%<div class="rule-cond-sep">或</div>实际定级包含C/D 且 上月Style毛利率≤2%',
+        perf: 'Style定位=EOL，上月Style毛利率=1.12%'
+      },
+      {
+        name: 'B021011221',
+        style: 'Style222<br>（销售负责人）',
+        ruleName: 'EOL定位管控',
+        cond: '店铺：amazon/US/topshoesUS<br>style定位包含EOL 且 上月Style毛利率≤2%<div class="rule-cond-sep">或</div>实际定级包含C/D 且 上月Style毛利率≤2%',
+        perf: '实际定级=D，上月Style毛利率=1.12%'
+      },
+      {
+        name: '广告名 222（ASIN）',
+        style: 'Style111<br>（销售负责人）',
+        ruleName: 'EOL定位管控',
+        cond: '店铺：amazon/US/topshoesUS<br>style定位包含EOL 且 上月Style毛利率≤2%<div class="rule-cond-sep">或</div>实际定级包含C/D 且 上月Style毛利率≤2%',
+        perf: 'Style定位=EOL，上月Style毛利率=1.12%'
+      }
+    ]
+  },
+  {
+    id: 'scene-campaign-enable',
+    title: '二、广告活动维度 — 启用广告活动',
+    badge: '广告活动维度',
+    isNewFormat: false,
+    desc: '顶部文案动态带入维度“广告活动”与动作“启用”；6 列包含广告活动链接列。',
+    mode: 'operate',
+    totalCount: 5,
+    hitCount: 3,
+    dimension: '广告活动',
+    actionLabel: '启用',
+    leadText: (s) => `本次总共调整 ${s.totalCount} 个${s.dimension}，共 ${s.hitCount} 个需${s.actionLabel}的${s.dimension}触发了管控规则，请确认是否继续？`,
+    tableTitle: '触发规则的广告活动：',
+    columns: [
+      { key: 'name', label: '名称', width: '15%' },
+      { key: 'parent', label: '广告活动/广告组', width: '15%' },
+      { key: 'style', label: 'Style', width: '13%' },
+      { key: 'rule', label: '管控规则名称', width: '15%' },
+      { key: 'cond', label: '管控规则', width: '23%' },
+      { key: 'perf', label: '当前表现', width: '19%' }
+    ],
+    rows: [
+      {
+        name: '<span class="tagmini">SP</span>广告活动AAA',
+        campaign: '广告活动名A',
+        style: 'Style111<br>（销售负责人）',
+        ruleName: 'EOL定位管控',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：开启广告活动/广告组/商品&广告<br>Style定位包含EOL 且 上月Style利润率≤2%',
+        perf: 'Style定位=EOL，上月Style利润率=1.12%'
+      },
+      {
+        name: '<span class="tagmini">SP</span>广告活动BBB',
+        campaign: '广告活动名B',
+        style: 'Style222<br>（销售负责人）',
+        ruleName: '实际定级低于目标管控',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：开启广告活动/广告组/商品&广告<br>实际定级小于目标定级：是 且 StyleACOS>=35%',
+        perf: '实际定级=D（目标=B），近14天StyleACOS=41.2%'
+      },
+      {
+        name: '<span class="tagmini sb">SB</span>广告活动CCC',
+        campaign: '广告活动名C',
+        style: 'Style333<br>（销售负责人）',
+        ruleName: '连续亏损红线管控',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：开启广告活动/广告组/商品&广告<br>连续亏损周数 >= 4周',
+        perf: '连续亏损周数=5周'
+      }
+    ]
+  },
+  {
+    id: 'scene-campaign-budget',
+    title: '三、广告活动维度 — 修改预算（提高广告活动预算/基准预算）',
+    badge: '按广告活动格式显示',
+    isNewFormat: true,
+    desc: '修改预算统一按“广告活动”维度格式显示：6 列结构，名称展示广告活动名，广告活动/广告组列展示对应广告活动链接。',
+    mode: 'operate',
+    totalCount: 5,
+    hitCount: 3,
+    dimension: '广告活动',
+    actionLabel: '修改预算',
+    leadText: (s) => `本次总共调整 ${s.totalCount} 个${s.dimension}，共 ${s.hitCount} 个需${s.actionLabel}的${s.dimension}触发了管控规则，请确认是否继续？`,
+    tableTitle: '触发规则的广告活动：',
+    columns: [
+      { key: 'name', label: '名称', width: '16%' },
+      { key: 'parent', label: '广告活动/广告组', width: '15%' },
+      { key: 'style', label: 'Style', width: '12%' },
+      { key: 'rule', label: '管控规则名称', width: '15%' },
+      { key: 'cond', label: '管控规则', width: '23%' },
+      { key: 'perf', label: '当前表现', width: '19%' }
+    ],
+    rows: [
+      {
+        name: '<span class="tagmini">SP</span>DP-Category-AUTO-Sherry',
+        campaign: 'DP-Category-AUTO-Sherry',
+        style: 'CHUNK<br>（Sherry.Su）',
+        ruleName: 'Style广销比预警',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：提高广告活动预算/基准预算<br>近14天Style广销比 ≥ 8%',
+        perf: '近14天Style广销比 = 8.6%'
+      },
+      {
+        name: '<span class="tagmini">SP</span>26001W-Mens-Casual-AUTO',
+        campaign: '26001W-Mens-Casual-AUTO',
+        style: '26001W<br>（Dylan.Shi）',
+        ruleName: '利润率与ROAS管控',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：提高广告活动预算/基准预算<br>近14天广告活动ROAS =< 2.5 且 连续亏损周数 >= 2周',
+        perf: '近14天广告活动ROAS=2.14，连续亏损周数=3周'
+      },
+      {
+        name: '<span class="tagmini sb">SB</span>2512W-Brand-Collection',
+        campaign: '2512W-Brand-Collection',
+        style: '2512W<br>（Lulu.Xu）',
+        ruleName: 'EOL产品增投限制',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：提高广告活动预算/基准预算<br>实际定级包含 EOL',
+        perf: '实际定级 = EOL'
+      }
+    ]
+  },
+  {
+    id: 'scene-campaign-placement',
+    title: '四、广告活动维度 — 提高广告位竞价比例',
+    badge: '按广告活动格式显示',
+    isNewFormat: true,
+    desc: '提高广告位竞价比例按“广告活动”格式显示；名称列中补充具体广告位名称，广告活动/广告组列显示所属广告活动链接。',
+    mode: 'operate',
+    totalCount: 4,
+    hitCount: 2,
+    dimension: '广告活动',
+    actionLabel: '提高广告位竞价比例',
+    leadText: (s) => `本次总共调整 ${s.totalCount} 个${s.dimension}，共 ${s.hitCount} 个需${s.actionLabel}的${s.dimension}触发了管控规则，请确认是否继续？`,
+    tableTitle: '触发规则的广告活动：',
+    columns: [
+      { key: 'name', label: '名称', width: '17%' },
+      { key: 'parent', label: '广告活动/广告组', width: '15%' },
+      { key: 'style', label: 'Style', width: '12%' },
+      { key: 'rule', label: '管控规则名称', width: '14%' },
+      { key: 'cond', label: '管控规则', width: '23%' },
+      { key: 'perf', label: '当前表现', width: '19%' }
+    ],
+    rows: [
+      {
+        name: '<span class="tagmini">SP</span>BM-KEYWORDS-TOP<br><span style="color:#909399">广告位：搜索结果顶部（首页）</span>',
+        campaign: 'BM-KEYWORDS-TOP',
+        style: 'SBOX2336M<br>（Levi）',
+        ruleName: '广告位加价ACOS管控',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：提高广告位竞价比例<br>近14天广告活动ACOS >= 35%',
+        perf: '近14天广告活动ACOS = 42.8%'
+      },
+      {
+        name: '<span class="tagmini sb">SB</span>DP-FLATS-COLLECTION<br><span style="color:#909399">广告位：其余搜索结果</span>',
+        campaign: 'DP-FLATS-COLLECTION',
+        style: 'DP2409W<br>（Daisy.Ma）',
+        ruleName: 'Style点击率与ROAS管控',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：提高广告位竞价比例<br>近30天StyleROAS =< 3.0 且 近30天Style广告点击率 =< 0.4%',
+        perf: '近30天StyleROAS=2.35，Style广告点击率=0.32%'
+      }
+    ]
+  },
+  {
+    id: 'scene-campaign-composite',
+    title: '五、广告活动维度 — 编辑广告活动（同时触发启用、提高预算、提高广告位比例）',
+    badge: '复合编辑 · 单弹窗合并展示',
+    isNewFormat: true,
+    desc: '同一广告活动编辑提交时按变更动作拆分匹配规则，合并为 1 个弹窗展示；名称列换行附带具体触发项及修改前后值；选择“排除掉风控部分”时将表中命中的修改项回退原值，其余未命中修改正常保存。',
+    extraSpecHtml: `
+      <div class="edit-spec-bar">
+        <div>
+          <div><strong>广告活动编辑入口演练：</strong><span class="tagmini">SP</span><b>SP-CHUNK-Manual</b>（关联 Style：<b>CHUNK</b> · 负责人：Sherry.Su）— 保存时自动拆解变更项并合并为 1 个管控提示弹窗。</div>
+          <div class="edit-spec-fields">
+            <span class="edit-spec-chip hit">活动状态：暂停 → 启用（命中）</span>
+            <span class="edit-spec-chip hit">日预算：$20.00 → $35.00（命中）</span>
+            <span class="edit-spec-chip hit">搜索结果顶部比例：20% → 50%（命中）</span>
+            <span class="edit-spec-chip">商品页面比例：10% → 15%（未触发）</span>
+            <span class="edit-spec-chip">结束日期：2026-12-31 → 2027-01-31（非受控）</span>
+          </div>
+        </div>
+        <button type="button" class="primary" onclick="openCampaignEditModal()">打开「编辑广告活动」操作弹窗演练</button>
+      </div>`,
+    mode: 'operate',
+    totalCount: 4,
+    hitCount: 3,
+    dimension: '广告活动修改项',
+    actionLabel: '编辑广告活动',
+    leadText: (s) => `本次编辑广告活动共修改 ${s.totalCount} 项，其中 ${s.hitCount} 项修改触发了管控规则，请确认是否继续？`,
+    tableTitle: '触发规则的广告活动修改项：',
+    columns: [
+      { key: 'name', label: '名称', width: '19%' },
+      { key: 'parent', label: '广告活动/广告组', width: '14%' },
+      { key: 'style', label: 'Style', width: '12%' },
+      { key: 'rule', label: '管控规则名称', width: '14%' },
+      { key: 'cond', label: '管控规则', width: '23%' },
+      { key: 'perf', label: '当前表现', width: '18%' }
+    ],
+    rows: [
+      {
+        name: '<span class="tagmini">SP</span>SP-CHUNK-Manual<br><span style="color:#606266">触发项：开启广告活动（暂停 → 启用）</span>',
+        campaign: 'SP-CHUNK-Manual',
+        style: 'CHUNK<br>（Sherry.Su）',
+        ruleName: '定级不达标开启管控',
+        rowLevel: '禁止操作',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：开启广告活动/广告组/商品&广告<br>实际定级小于目标定级：是',
+        perf: '实际定级=C，目标定级=A'
+      },
+      {
+        name: '<span class="tagmini">SP</span>SP-CHUNK-Manual<br><span style="color:#606266">触发项：提高预算（$20.00 → $35.00）</span>',
+        campaign: 'SP-CHUNK-Manual',
+        style: 'CHUNK<br>（Sherry.Su）',
+        ruleName: '高ACOS预算管控',
+        rowLevel: '飞书审批',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：提高广告活动预算/基准预算<br>近7天广告活动ACOS >= 45%',
+        perf: '近7天广告活动ACOS = 52.30%'
+      },
+      {
+        name: '<span class="tagmini">SP</span>SP-CHUNK-Manual<br><span style="color:#606266">触发项：提高广告位比例 - 搜索结果顶部（首页）（20% → 50%）</span>',
+        campaign: 'SP-CHUNK-Manual',
+        style: 'CHUNK<br>（Sherry.Su）',
+        ruleName: '低转化控顶位比例',
+        rowLevel: '页面提醒',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：提高广告位竞价比例<br>近14天Style广告转化率 =< 5%',
+        perf: '近14天Style广告转化率 = 3.80%'
+      }
+    ]
+  },
+  {
+    id: 'scene-adgroup-enable',
+    title: '六、广告组维度 — 启用广告组',
+    badge: '广告组启用标准格式',
+    isNewFormat: false,
+    desc: '名称展示广告组名；“广告活动/广告组”列换行展示所属广告活动名和广告组名链接。',
+    mode: 'operate',
+    totalCount: 6,
+    hitCount: 3,
+    dimension: '广告组',
+    actionLabel: '启用',
+    leadText: (s) => `本次总共调整 ${s.totalCount} 个${s.dimension}，共 ${s.hitCount} 个需${s.actionLabel}的${s.dimension}触发了管控规则，请确认是否继续？`,
+    tableTitle: '触发规则的广告组：',
+    columns: [
+      { key: 'name', label: '名称', width: '14%' },
+      { key: 'parent', label: '广告活动/广告组', width: '16%' },
+      { key: 'style', label: 'Style', width: '13%' },
+      { key: 'rule', label: '管控规则名称', width: '15%' },
+      { key: 'cond', label: '管控规则', width: '23%' },
+      { key: 'perf', label: '当前表现', width: '19%' }
+    ],
+    rows: [
+      {
+        name: '广告组AAA',
+        campaign: '广告活动名A',
+        adGroup: '广告组AAA',
+        style: 'Style111<br>（销售负责人）',
+        ruleName: 'EOL定位管控',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：开启广告活动/广告组/商品&广告<br>Style定位包含EOL 且 上月Style利润率≤2%',
+        perf: 'Style定位=EOL，上月Style利润率=1.12%'
+      },
+      {
+        name: '广告组BBB',
+        campaign: '广告活动名A',
+        adGroup: '广告组BBB',
+        style: 'Style222<br>（销售负责人）',
+        ruleName: 'EOL定位管控',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：开启广告活动/广告组/商品&广告<br>Style定位包含EOL 且 上月Style利润率≤2%',
+        perf: 'Style定位=EOL，上月Style利润率=1.12%'
+      },
+      {
+        name: '广告组CCC',
+        campaign: '广告活动名B',
+        adGroup: '广告组CCC',
+        style: 'Style333<br>（销售负责人）',
+        ruleName: '转化率预警管控',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：开启广告活动/广告组/商品&广告<br>近14天Style广告转化率 =< 6%',
+        perf: '近14天Style广告转化率=4.35%'
+      }
+    ]
+  },
+  {
+    id: 'scene-adgroup-bid',
+    title: '七、广告组维度 — 修改默认竞价（提高默认竞价/基准竞价）',
+    badge: '按广告组启用格式显示',
+    isNewFormat: true,
+    desc: '广告组默认竞价/基准竞价按“广告组启用”格式显示：名称为广告组名，“广告活动/广告组”列两行展示对应广告活动与广告组链接。',
+    mode: 'operate',
+    totalCount: 6,
+    hitCount: 3,
+    dimension: '广告组',
+    actionLabel: '修改默认竞价',
+    leadText: (s) => `本次总共调整 ${s.totalCount} 个${s.dimension}，共 ${s.hitCount} 个需${s.actionLabel}的${s.dimension}触发了管控规则，请确认是否继续？`,
+    tableTitle: '触发规则的广告组：',
+    columns: [
+      { key: 'name', label: '名称', width: '14%' },
+      { key: 'parent', label: '广告活动/广告组', width: '16%' },
+      { key: 'style', label: 'Style', width: '13%' },
+      { key: 'rule', label: '管控规则名称', width: '15%' },
+      { key: 'cond', label: '管控规则', width: '23%' },
+      { key: 'perf', label: '当前表现', width: '19%' }
+    ],
+    rows: [
+      {
+        name: 'Ankle-Boots-Exact',
+        campaign: 'DP-US-AnkleBoots-Manual',
+        adGroup: 'Ankle-Boots-Exact',
+        style: 'DP2508W<br>（Ivy.Kang）',
+        ruleName: '默认竞价CPC限制',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：提高默认竞价/投放竞价/基准竞价<br>近14天Style点击成本 >= 1.2',
+        perf: '近14天Style点击成本 = $1.45'
+      },
+      {
+        name: 'Snow-Boots-Auto',
+        campaign: 'DP-US-SnowBoots-Auto',
+        adGroup: 'Snow-Boots-Auto',
+        style: 'SNWS248W<br>（Dylan.Shi）',
+        ruleName: '连续亏损提价限制',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：提高默认竞价/投放竞价/基准竞价<br>连续亏损周数 >= 3周 且 近7天广告活动ACOS >= 40%',
+        perf: '连续亏损周数=4周，近7天广告活动ACOS=46.8%'
+      },
+      {
+        name: 'Loafers-Broad',
+        campaign: 'BM-US-Loafers-Manual',
+        adGroup: 'Loafers-Broad',
+        style: 'BM2410M<br>（Levi）',
+        ruleName: '定级倒挂提价限制',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：提高默认竞价/投放竞价/基准竞价<br>实际定级小于目标定级：是',
+        perf: '实际定级=D，目标定级=B'
+      }
+    ]
+  },
+  {
+    id: 'scene-targeting-bid',
+    title: '八、投放维度 — 修改投放竞价（新增【投放】弹窗格式）',
+    badge: '新增投放格式 · 同广告组结构',
+    isNewFormat: true,
+    desc: '投放沿用“广告组启用”的 6 列结构，“名称”列按平台标准样式展示商品投放、关键词、自动投放及受众。',
+    extraSpecHtml: `
+      <div class="t-spec-grid" aria-label="投放名称展示规范对照">
+        <div class="t-spec-col">
+          <h4>商品投放</h4>
+          <div class="t-spec-group">商品（PRODUCT_EXACT、PRODUCT_SIMILAR）</div>
+          <div class="t-spec-list">
+            ${tProd("DREAM PAIRS Women's Ankle Boots", 'e', 'e', 'B01234422')}
+            ${tProd("ALLSWIFIT Women's Walking Shoes", 's', 's', 'B01234422')}
+          </div>
+          <div class="t-spec-group">分类（PRODUCT_CATEGORY）</div>
+          <div class="t-sub">分类: Guitar &amp; Bass Pedal Boards &amp; Cases 星级:4-5</div>
+          <div class="t-spec-group">主题（THEME_PRODUCT）</div>
+          <div class="t-sub">与您推广商品相似的商品</div>
+        </div>
+        <div class="t-spec-col">
+          <h4>关键词</h4>
+          <div class="t-spec-group">关键词（KEYWORD）</div>
+          <div class="t-spec-list">
+            ${tBadge('E', 'e', 'women ankle boots', true)}
+            ${tBadge('P', 'p', 'chunky heel boots', true)}
+            ${tBadge('B', 'b', 'winter boots', true)}
+          </div>
+          <div class="t-spec-group">主题（THEME_KEYWORD）</div>
+          <div class="t-spec-list">
+            ${tBadge('T', 't', 'Keywords related to your product category', false)}
+          </div>
+        </div>
+        <div class="t-spec-col">
+          <h4>自动投放</h4>
+          <div class="t-spec-group">主题（CLOSE_MATCH / LOOSE_MATCH / COMPLEMENTS / SUBSTITUTES）</div>
+          <div class="t-spec-list">
+            ${tBadge('A', 'a', '同类商品', false)}
+            ${tBadge('A', 'a', '紧密匹配', false)}
+            ${tBadge('A', 'a', '宽泛匹配', false)}
+            ${tBadge('A', 'a', '关联商品', false)}
+          </div>
+        </div>
+        <div class="t-spec-col">
+          <h4>受众</h4>
+          <div class="t-spec-group">受众（AUDIENCE）</div>
+          <div class="t-spec-list">
+            <div class="t-sub">LS - Interested in Western Romance Books</div>
+            <div class="t-sub">Role-Playing Video Games</div>
+          </div>
+          <div class="t-spec-group">再营销（PRODUCT_AUDIENCE）</div>
+          <div class="t-sub">购买再营销 - 分类:Studio Audio Monitors 回溯期:30</div>
+        </div>
+      </div>`,
+    mode: 'operate',
+    totalCount: 12,
+    hitCount: 6,
+    dimension: '投放',
+    actionLabel: '修改竞价',
+    leadText: (s) => `本次总共调整 ${s.totalCount} 个${s.dimension}，共 ${s.hitCount} 个需${s.actionLabel}的${s.dimension}触发了管控规则，请确认是否继续？`,
+    tableTitle: '触发规则的投放：',
+    columns: [
+      { key: 'name', label: '名称', width: '19%' },
+      { key: 'parent', label: '广告活动/广告组', width: '16%' },
+      { key: 'style', label: 'Style', width: '11%' },
+      { key: 'rule', label: '管控规则名称', width: '13%' },
+      { key: 'cond', label: '管控规则', width: '23%' },
+      { key: 'perf', label: '当前表现', width: '18%' }
+    ],
+    rows: [
+      {
+        name: tBadge('E', 'e', 'women ankle boots', true),
+        campaign: 'DP-US-AnkleBoots-Manual',
+        adGroup: 'Ankle-Boots-Exact',
+        style: 'DP2508W<br>（Ivy.Kang）',
+        ruleName: '投放转化成本管控',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：提高默认竞价/投放竞价/基准竞价<br>近14天广告活动转化成本 >= 12 且 广告活动转化率 =< 8%',
+        perf: '近14天广告活动转化成本=$15.30，转化率=6.1%'
+      },
+      {
+        name: tBadge('P', 'p', 'chunky heel boots', true),
+        campaign: 'DP-US-Heels-Manual',
+        adGroup: 'Heels-Phrase',
+        style: 'CHUNK<br>（Sherry.Su）',
+        ruleName: 'Style广销比超线管控',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：提高默认竞价/投放竞价/基准竞价<br>近14天Style广销比 ≥ 8%',
+        perf: '近14天Style广销比 = 9.4%'
+      },
+      {
+        name: tProd("DREAM PAIRS Women's Walking Shoes...", 'e', 'e', 'B01234422'),
+        campaign: 'AS-US-Running-PAT',
+        adGroup: 'Competitor-ASIN',
+        style: 'AS2601W<br>（Eddie.Yuan）',
+        ruleName: '投放点击率与ROAS管控',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：提高默认竞价/投放竞价/基准竞价<br>近30天广告活动ROAS =< 2.0 且 广告活动点击率 =< 0.35%',
+        perf: '近30天广告活动ROAS=1.68，点击率=0.28%'
+      },
+      {
+        name: '<div class="t-sub">分类: Women\'s Ankle Boots 星级:4-5</div>',
+        campaign: 'DP-US-Category-PAT',
+        adGroup: 'Boots-Category',
+        style: 'DP2409W<br>（Daisy.Ma）',
+        ruleName: '分类投放ACOS预警',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：提高默认竞价/投放竞价/基准竞价<br>近14天广告活动ACOS >= 38%',
+        perf: '近14天广告活动ACOS = 43.6%'
+      },
+      {
+        name: tBadge('A', 'a', '紧密匹配', false),
+        campaign: 'DP-US-SnowBoots-Auto',
+        adGroup: 'Snow-Boots-Auto',
+        style: 'SNWS248W<br>（Dylan.Shi）',
+        ruleName: '连续亏损提价限制',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：提高默认竞价/投放竞价/基准竞价<br>连续亏损周数 >= 3周',
+        perf: '连续亏损周数 = 4周'
+      },
+      {
+        name: '<div class="t-sub">购买再营销 - 分类:Women\'s Boots 回溯期:30</div>',
+        campaign: 'SD-US-Boots-Remarketing',
+        adGroup: 'Views-30D',
+        style: 'DP2508W<br>（Ivy.Kang）',
+        ruleName: '受众ROAS红线',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：提高默认竞价/投放竞价/基准竞价<br>近30天广告活动ROAS =< 2.2',
+        perf: '近30天广告活动ROAS = 1.85'
+      }
+    ]
+  },
+  {
+    id: 'scene-product-enable',
+    title: '九、商品/广告维度 — 启用商品/广告',
+    badge: '商品/广告维度',
+    isNewFormat: false,
+    desc: 'SP/SD 名称显示具体 MSKU，SB 名称显示具体广告名（ASIN）；“广告活动/广告组”列两行展示所属广告活动与广告组。',
+    mode: 'operate',
+    totalCount: 6,
+    hitCount: 3,
+    dimension: '商品/广告',
+    actionLabel: '启用',
+    leadText: (s) => `本次总共调整 ${s.totalCount} 个${s.dimension}，共 ${s.hitCount} 个需${s.actionLabel}的${s.dimension}触发了管控规则，请确认是否继续？`,
+    tableTitle: '触发规则的商品/广告：',
+    columns: [
+      { key: 'name', label: '名称', width: '15%' },
+      { key: 'parent', label: '广告活动/广告组', width: '16%' },
+      { key: 'style', label: 'Style', width: '13%' },
+      { key: 'rule', label: '管控规则名称', width: '14%' },
+      { key: 'cond', label: '管控规则', width: '23%' },
+      { key: 'perf', label: '当前表现', width: '19%' }
+    ],
+    rows: [
+      {
+        name: 'MSKU1111',
+        campaign: '广告活动名A',
+        adGroup: '广告组AAA',
+        style: 'Style111<br>（销售负责人）',
+        ruleName: 'EOL定位管控',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：开启广告活动/广告组/商品&广告<br>Style定位包含EOL 且 上月Style利润率≤2%',
+        perf: 'Style定位=EOL，上月Style利润率=1.12%'
+      },
+      {
+        name: 'MSKU2222',
+        campaign: '广告活动名A',
+        adGroup: '广告组BBB',
+        style: 'Style222<br>（销售负责人）',
+        ruleName: 'Style点击成本与ACOS管控',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：开启广告活动/广告组/商品&广告<br>近14天Style点击成本 >= 1.5 且 StyleACOS >= 40%',
+        perf: '近14天Style点击成本=$1.72，StyleACOS=44.5%'
+      },
+      {
+        name: '广告名 222 (ASIN)',
+        campaign: 'SB-Brand-Collection',
+        adGroup: 'Brand-Core',
+        style: 'Style333<br>（销售负责人）',
+        ruleName: '连续亏损红线管控',
+        cond: '店铺：amazon/US/topshoesUS<br>控制动作：开启广告活动/广告组/商品&广告<br>连续亏损周数 >= 4周',
+        perf: '连续亏损周数 = 4周'
+      }
+    ]
+  }
+];
+
+function buildRiskCardHtml(scene, level, uid, inModal = false) {
+  const isBlock = level === '禁止操作';
+  const radioName = 'decision-' + uid;
+  const noteWrapId = 'note-wrap-' + uid;
+  const noteId = 'note-' + uid;
+  const countId = 'cnt-' + uid;
+  const errId = 'err-' + uid;
+
+  const thead = scene.columns.map(col => `<th style="width:${col.width}">${esc(col.label)}</th>`).join('');
+  const tbody = scene.rows.map(r => {
+    const rank = {'页面提醒': 1, '飞书审批': 2, '禁止操作': 3};
+    const rowLvl = r.rowLevel && rank[r.rowLevel] <= rank[level] ? r.rowLevel : level;
+    const rowIsBlock = rowLvl === '禁止操作';
+    const ruleLevelHtml = `<span class="lvl-inline ${rowIsBlock ? 'block' : 'warn'}">管控等级：${rowLvl}</span>`;
+    if (scene.mode === 'create') {
+      return `<tr>
+        <td>${r.name}</td>
+        <td>${r.style}</td>
+        <td>${esc(r.ruleName)}<br>${ruleLevelHtml}</td>
+        <td>${r.cond}</td>
+        <td>${esc(r.perf)}</td>
+      </tr>`;
+    }
+    const parentHtml = r.adGroup
+      ? `<span class="obj-link" onclick="toast('打开广告活动详情：${esc(r.campaign)}')">${esc(r.campaign)}</span><br><span class="obj-link" onclick="toast('打开广告组详情：${esc(r.adGroup)}')">${esc(r.adGroup)}</span>`
+      : `<span class="obj-link" onclick="toast('打开广告活动详情：${esc(r.campaign)}')">${esc(r.campaign)}</span>`;
+    return `<tr>
+      <td>${r.name}</td>
+      <td>${parentHtml}</td>
+      <td>${r.style}</td>
+      <td>${esc(r.ruleName)}<br>${ruleLevelHtml}</td>
+      <td>${r.cond}</td>
+      <td>${esc(r.perf)}</td>
+    </tr>`;
+  }).join('');
+
+  const closeAction = inModal ? 'closeModal()' : `toast('已关闭「${esc(scene.actionLabel)} · ${level}」示例')`;
+  const confirmAction = `submitRiskCard('${uid}','${esc(scene.dimension)}','${esc(scene.actionLabel)}','${level}',${inModal})`;
+
+  return `
+  <article class="risk-card" id="card-${uid}">
+    <div class="risk-card-hd">
+      <div class="hd-title">
+        <span>管控提示</span>
+        ${inModal ? '' : `<span style="font-size:11px;color:${isBlock ? 'var(--danger)' : 'var(--warn)'};background:${isBlock ? 'var(--danger-bg)' : 'var(--warn-bg)'};padding:1px 6px;border-radius:3px">${level}</span>`}
+      </div>
+      <div class="hd-actions">
+        ${inModal ? '' : `<button type="button" class="preview-btn" onclick="openSceneModal('${scene.id}','${level}')">弹窗预览</button>`}
+        <button type="button" class="close-x" aria-label="关闭" onclick="${closeAction}">×</button>
+      </div>
+    </div>
+    <div class="risk-card-bd">
+      <div class="risk-lead">${esc(scene.leadText(scene))}</div>
+      <div class="risk-level ${isBlock ? 'block' : ''}">管控等级：${level}</div>
+      <div class="risk-sub">${esc(scene.tableTitle)}</div>
+      <div class="risk-table-wrap">
+        <table class="risk-table">
+          <thead><tr>${thead}</tr></thead>
+          <tbody>${tbody}</tbody>
+        </table>
+      </div>
+      <div class="risk-choice-row">
+        <span class="risk-choice-label"><span class="req">*</span>处理方式：</span>
+        <label><input type="radio" name="${radioName}" value="exclude" checked onchange="toggleRiskChoice('${uid}','${level}')">排除掉风控部分，其他继续提交</label>
+        ${isBlock ? '' : `<label><input type="radio" name="${radioName}" value="all" onchange="toggleRiskChoice('${uid}','${level}')">全部继续提交</label>`}
+      </div>
+      <div id="${noteWrapId}" class="approval-box" hidden>
+        <div class="approval-label"><span class="req">*</span>审批备注：</div>
+        <div class="textarea-wrap">
+          <textarea id="${noteId}" maxlength="1000" placeholder="请输入审批备注" oninput="updateNoteCount('${uid}')"></textarea>
+          <span class="char-count" id="${countId}">0/1000</span>
+        </div>
+      </div>
+      <div class="risk-err" id="${errId}" role="status"></div>
+    </div>
+    <div class="risk-card-ft">
+      ${isBlock && scene.mode === 'create'
+        ? `<button type="button" class="primary" onclick="${closeAction}">关闭</button>`
+        : `<button type="button" onclick="${closeAction}">取消</button><button type="button" class="primary" onclick="${confirmAction}">确定</button>`}
+    </div>
+  </article>`;
+}
+
+function toggleRiskChoice(uid, level) {
+  const val = document.querySelector(`input[name="decision-${uid}"]:checked`)?.value;
+  const wrap = document.getElementById('note-wrap-' + uid);
+  const err = document.getElementById('err-' + uid);
+  if (err) err.textContent = '';
+  if (wrap) wrap.hidden = !(level === '飞书审批' && val === 'all');
+}
+
+function updateNoteCount(uid) {
+  const ta = document.getElementById('note-' + uid);
+  const cnt = document.getElementById('cnt-' + uid);
+  if (ta && cnt) cnt.textContent = ta.value.length + '/1000';
+}
+
+function submitRiskCard(uid, dimension, actionLabel, level, inModal) {
+  const val = document.querySelector(`input[name="decision-${uid}"]:checked`)?.value || 'exclude';
+  const err = document.getElementById('err-' + uid);
+  if (level === '飞书审批' && val === 'all') {
+    const note = (document.getElementById('note-' + uid)?.value || '').trim();
+    if (!note) {
+      if (err) err.textContent = '请填写审批备注';
+      toast('请填写审批备注');
+      return;
+    }
+    if (err) err.textContent = '';
+    if (inModal) closeModal();
+    toast(`【${dimension} · ${actionLabel}】已发起飞书审批（全部继续提交），审批通过后生效`);
+    return;
+  }
+  if (err) err.textContent = '';
+  if (inModal) closeModal();
+  toast(val === 'exclude'
+    ? `【${dimension} · ${actionLabel}】已排除命中风控对象，未命中部分已继续提交（演示）`
+    : `【${dimension} · ${actionLabel}】页面提醒确认后已全部继续提交（演示）`);
+}
+
+function renderAllScenes() {
+  const root = document.getElementById('scenesRoot');
+  const sceneHtml = SCENES.map((scene, idx) => `
+    <section class="scene-section" id="${scene.id}">
+      <div class="scene-head">
+        <div class="scene-title">
+          <h3>${esc(scene.title)}</h3>
+          <span class="scene-tag ${scene.isNewFormat ? 'new' : ''}">${esc(scene.badge)}</span>
+        </div>
+        <div class="scene-desc">${esc(scene.desc)}</div>
+      </div>
+      ${scene.extraSpecHtml || ''}
+      <div class="triple-grid">
+        ${LEVELS.map((lvl, li) => buildRiskCardHtml(scene, lvl, `s${idx}-l${li}`, false)).join('')}
+      </div>
+    </section>
+  `).join('');
+
+  // 第 9 节：融合当前 HTML 内的幅度二次【风控提醒】弹窗示例
+  const amplitudeHtml = `
+    <section class="scene-section" id="scene-amplitude">
+      <div class="scene-head">
+        <div class="scene-title">
+          <h3>十、预算/竞价提升幅度二次【风控提醒】弹窗（手工修改超过预设幅度触发）</h3>
+          <span class="scene-tag">与管控提示分别判断，不相互替代</span>
+        </div>
+        <div class="scene-desc">延续原手动修改幅度提醒：预算提升幅度 &gt; 100%、竞价提升幅度 &gt; 50% 时弹出二次确认，与上述【管控提示】独立判断。</div>
+      </div>
+      <div class="double-grid">
+        <article class="risk-card">
+          <div class="risk-card-hd">
+            <div class="hd-title"><span>风控提醒</span><span class="scene-tag">预算单条修改 &gt; 100%</span></div>
+            <div class="hd-actions">
+              <button type="button" class="preview-btn" onclick="openAmplitudeModal('budgetSingle')">弹窗预览</button>
+              <button type="button" class="close-x" aria-label="关闭" onclick="toast('已取消预算修改')">×</button>
+            </div>
+          </div>
+          <div class="risk-card-bd">
+            <div class="risk-lead">修改预算：$20.00 → $50.00</div>
+            <div>提升幅度大于 <span class="amp-diff">100%</span>（当前 +150.00%），请确认是否继续？</div>
+          </div>
+          <div class="risk-card-ft">
+            <button type="button" onclick="toast('已取消修改')">取消</button>
+            <button type="button" class="primary" onclick="toast('已确认继续提交预算修改（演示）')">继续</button>
+          </div>
+        </article>
+
+        <article class="risk-card">
+          <div class="risk-card-hd">
+            <div class="hd-title"><span>风控提醒</span><span class="scene-tag">预算批量修改 &gt; 100%</span></div>
+            <div class="hd-actions">
+              <button type="button" class="preview-btn" onclick="openAmplitudeModal('budgetBatch')">弹窗预览</button>
+              <button type="button" class="close-x" aria-label="关闭" onclick="toast('已取消批量预算修改')">×</button>
+            </div>
+          </div>
+          <div class="risk-card-bd">
+            <div class="risk-lead">以下广告活动的预算提升幅度<span class="amp-diff">大于100%</span>，请确认是否继续？</div>
+            <div class="risk-table-wrap">
+              <table class="risk-table" style="min-width:420px">
+                <thead><tr><th>广告活动</th><th>当前预算</th><th>修改后预算</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="tagmini">SP</span>DP-Category-AUTO-Sherry</td><td>$20.00/日</td><td>$55.00/日</td></tr>
+                  <tr><td><span class="tagmini sb">SB</span>2512W-Brand-Collection</td><td>$15.00/日</td><td>$40.00/日</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="risk-card-ft">
+            <button type="button" onclick="toast('已取消批量修改')">取消</button>
+            <button type="button" class="primary" onclick="toast('已确认继续提交批量预算修改（演示）')">继续</button>
+          </div>
+        </article>
+
+        <article class="risk-card">
+          <div class="risk-card-hd">
+            <div class="hd-title"><span>风控提醒</span><span class="scene-tag">竞价单条修改 &gt; 50%</span></div>
+            <div class="hd-actions">
+              <button type="button" class="preview-btn" onclick="openAmplitudeModal('bidSingle')">弹窗预览</button>
+              <button type="button" class="close-x" aria-label="关闭" onclick="toast('已取消竞价修改')">×</button>
+            </div>
+          </div>
+          <div class="risk-card-bd">
+            <div class="risk-lead">修改竞价：$0.80 → $1.50</div>
+            <div>提升幅度大于 <span class="amp-diff">50%</span>（当前 +87.50%），请确认是否继续？</div>
+          </div>
+          <div class="risk-card-ft">
+            <button type="button" onclick="toast('已取消竞价修改')">取消</button>
+            <button type="button" class="primary" onclick="toast('已确认继续提交竞价修改（演示）')">继续</button>
+          </div>
+        </article>
+
+        <article class="risk-card">
+          <div class="risk-card-hd">
+            <div class="hd-title"><span>风控提醒</span><span class="scene-tag">竞价批量修改 &gt; 50%</span></div>
+            <div class="hd-actions">
+              <button type="button" class="preview-btn" onclick="openAmplitudeModal('bidBatch')">弹窗预览</button>
+              <button type="button" class="close-x" aria-label="关闭" onclick="toast('已取消批量竞价修改')">×</button>
+            </div>
+          </div>
+          <div class="risk-card-bd">
+            <div class="risk-lead">以下投放/广告组的竞价提升幅度<span class="amp-diff">大于50%</span>，请确认是否继续？</div>
+            <div class="risk-table-wrap">
+              <table class="risk-table" style="min-width:420px">
+                <thead><tr><th>投放 / 广告组</th><th>当前竞价</th><th>修改后竞价</th></tr></thead>
+                <tbody>
+                  <tr><td>${tBadge('E', 'e', 'women ankle boots', true)}</td><td>$0.85</td><td>$1.60</td></tr>
+                  <tr><td>${tProd("ALLSWIFIT Walking Shoes...", 's', 's', 'B08XYZ1234')}</td><td>$0.75</td><td>$1.35</td></tr>
+                  <tr><td>Ankle-Boots-Exact（默认竞价）</td><td>$0.70</td><td>$1.20</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="risk-card-ft">
+            <button type="button" onclick="toast('已取消批量竞价修改')">取消</button>
+            <button type="button" class="primary" onclick="toast('已确认继续提交批量竞价修改（演示）')">继续</button>
+          </div>
+        </article>
+      </div>
+    </section>
+  `;
+
+  root.innerHTML = sceneHtml + amplitudeHtml;
+
+  // 填充顶部控制台下拉
+  const sel = document.getElementById('pgScene');
+  sel.innerHTML = SCENES.map(s => `<option value="${s.id}">${esc(s.title)}</option>`).join('');
+}
+
+function openSceneModal(sceneId, level) {
+  const scene = SCENES.find(s => s.id === sceneId) || SCENES[0];
+  document.getElementById('modalBox').innerHTML = buildRiskCardHtml(scene, level, 'modal-active', true);
+  document.getElementById('modalMask').classList.add('on');
+}
+
+function openPlaygroundModal() {
+  openSceneModal(document.getElementById('pgScene').value, document.getElementById('pgLevel').value);
+}
+
+function openAmplitudeModal(kind) {
+  const map = {
+    budgetSingle: {
+      title: '风控提醒',
+      body: '<div class="risk-lead">修改预算：$20.00 → $50.00</div><div>提升幅度大于 <span class="amp-diff">100%</span>（当前 +150.00%），请确认是否继续？</div>'
+    },
+    budgetBatch: {
+      title: '风控提醒',
+      body: '<div class="risk-lead">以下广告活动的预算提升幅度<span class="amp-diff">大于100%</span>，请确认是否继续？</div><div class="risk-table-wrap"><table class="risk-table" style="min-width:420px"><thead><tr><th>广告活动</th><th>当前预算</th><th>修改后预算</th></tr></thead><tbody><tr><td><span class="tagmini">SP</span>DP-Category-AUTO-Sherry</td><td>$20.00/日</td><td>$55.00/日</td></tr><tr><td><span class="tagmini sb">SB</span>2512W-Brand-Collection</td><td>$15.00/日</td><td>$40.00/日</td></tr></tbody></table></div>'
+    },
+    bidSingle: {
+      title: '风控提醒',
+      body: '<div class="risk-lead">修改竞价：$0.80 → $1.50</div><div>提升幅度大于 <span class="amp-diff">50%</span>（当前 +87.50%），请确认是否继续？</div>'
+    },
+    bidBatch: {
+      title: '风控提醒',
+      body: '<div class="risk-lead">以下投放/广告组的竞价提升幅度<span class="amp-diff">大于50%</span>，请确认是否继续？</div><div class="risk-table-wrap"><table class="risk-table" style="min-width:420px"><thead><tr><th>投放 / 广告组</th><th>当前竞价</th><th>修改后竞价</th></tr></thead><tbody><tr><td>' + tBadge('E', 'e', 'women ankle boots', true) + '</td><td>$0.85</td><td>$1.60</td></tr><tr><td>' + tProd("ALLSWIFIT Walking Shoes...", 's', 's', 'B08XYZ1234') + '</td><td>$0.75</td><td>$1.35</td></tr><tr><td>Ankle-Boots-Exact（默认竞价）</td><td>$0.70</td><td>$1.20</td></tr></tbody></table></div>'
+    }
+  };
+  const cfg = map[kind];
+  document.getElementById('modalBox').innerHTML = `
+    <article class="risk-card">
+      <div class="risk-card-hd">
+        <div class="hd-title"><span>${cfg.title}</span></div>
+        <button type="button" class="close-x" aria-label="关闭" onclick="closeModal()">×</button>
+      </div>
+      <div class="risk-card-bd">${cfg.body}</div>
+      <div class="risk-card-ft">
+        <button type="button" onclick="closeModal()">取消</button>
+        <button type="button" class="primary" onclick="closeModal();toast('已确认继续提交（演示）')">继续</button>
+      </div>
+    </article>`;
+  document.getElementById('modalMask').classList.add('on');
+}
+
+function closeModal() {
+  document.getElementById('modalMask').classList.remove('on');
+}
+
+const COMP_EDIT_DEFAULT = {
+  campaign: 'SP-CHUNK-Manual',
+  type: 'SP',
+  style: 'CHUNK',
+  owner: 'Sherry.Su',
+  before: { v: 0, budget: 20, top: 20, prod: 10, end: '2026-12-31' },
+  after: { v: 1, budget: 35, top: 50, prod: 15, end: '2027-01-31' },
+  riskMode: 'mixed',
+  hits: [],
+  changesCount: 0,
+  maxLevel: '禁止操作'
+};
+let compEditState = structuredClone(COMP_EDIT_DEFAULT);
+
+function openCampaignEditModal(reset = false) {
+  if (reset) compEditState = structuredClone(COMP_EDIT_DEFAULT);
+  const c = compEditState;
+  const riskModes = [
+    ['mixed', '混合等级（禁止+审批+提醒）'],
+    ['飞书审批', '飞书审批'],
+    ['页面提醒', '页面提醒'],
+    ['禁止操作', '禁止操作']
+  ];
+  document.getElementById('modalBox').innerHTML = `
+    <article class="risk-card" style="max-width:780px;margin:0 auto">
+      <div class="risk-card-hd">
+        <div class="hd-title"><span>编辑广告活动</span><span class="scene-tag new">复合风控演练</span></div>
+        <button type="button" class="close-x" aria-label="关闭" onclick="closeModal()">×</button>
+      </div>
+      <div class="risk-card-bd">
+        <div class="edit-form-banner">
+          当前编辑活动：<b><span class="tagmini">${esc(c.type)}</span>${esc(c.campaign)}</b>（关联 Style：<b>${esc(c.style)}</b> · 负责人：${esc(c.owner)}）。保存时系统自动拆解开启、预算上调、广告位比例上调并合并为一个管控提示弹窗。
+        </div>
+        <div class="edit-form-grid">
+          <label for="ceStatus">活动状态（受控）：</label>
+          <div>
+            <select id="ceStatus">
+              <option value="1" ${c.after.v === 1 ? 'selected' : ''}>启用（原状态：暂停）</option>
+              <option value="0" ${c.after.v === 0 ? 'selected' : ''}>暂停（保持原值）</option>
+            </select>
+          </div>
+          <label for="ceBudget">日预算（受控）：</label>
+          <div>
+            <input id="ceBudget" type="number" min="1" step="0.01" style="width:120px" value="${c.after.budget.toFixed(2)}"> USD/日
+            <span class="hint">（修改前：$${c.before.budget.toFixed(2)}/日）</span>
+          </div>
+          <label for="ceTop">搜索结果顶部（受控）：</label>
+          <div>
+            <input id="ceTop" type="number" min="0" max="900" step="1" style="width:120px" value="${c.after.top}"> %
+            <span class="hint">（修改前：${c.before.top}%，命中低转化控顶位规则）</span>
+          </div>
+          <label for="ceProd">商品页面比例（未命中）：</label>
+          <div>
+            <input id="ceProd" type="number" min="0" max="900" step="1" style="width:120px" value="${c.after.prod}"> %
+            <span class="hint">（修改前：${c.before.prod}%，模拟该位置未触发风控）</span>
+          </div>
+          <label for="ceEnd">结束日期（非受控）：</label>
+          <div>
+            <input id="ceEnd" type="date" style="width:155px" value="${esc(c.after.end)}">
+            <span class="hint">（修改前：${esc(c.before.end)}）</span>
+          </div>
+          <label for="ceRiskMode">演示管控等级：</label>
+          <div>
+            <select id="ceRiskMode">
+              ${riskModes.map(([val, label]) => `<option value="${val}" ${c.riskMode === val ? 'selected' : ''}>${label}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="risk-err" id="ceError" role="status"></div>
+      </div>
+      <div class="risk-card-ft">
+        <button type="button" onclick="closeModal()">取消</button>
+        <button type="button" class="primary" onclick="submitCampaignEditModal()">保存</button>
+      </div>
+    </article>`;
+  document.getElementById('modalMask').classList.add('on');
+}
+
+function submitCampaignEditModal() {
+  const c = compEditState;
+  const v = Number(document.getElementById('ceStatus').value);
+  const budget = Number(document.getElementById('ceBudget').value);
+  const top = Number(document.getElementById('ceTop').value);
+  const prod = Number(document.getElementById('ceProd').value);
+  const end = document.getElementById('ceEnd').value || c.before.end;
+  const riskMode = document.getElementById('ceRiskMode').value || 'mixed';
+  const errEl = document.getElementById('ceError');
+
+  if (!Number.isFinite(budget) || budget <= 0) {
+    errEl.textContent = '请输入大于0的有效预算';
+    return;
+  }
+  if (!Number.isInteger(top) || top < 0 || top > 900 || !Number.isInteger(prod) || prod < 0 || prod > 900) {
+    errEl.textContent = '广告位比例请输入0-900的整数';
+    return;
+  }
+  c.after = { v, budget, top, prod, end };
+  c.riskMode = riskMode;
+
+  const changesCount =
+    (v !== c.before.v ? 1 : 0) +
+    (budget !== c.before.budget ? 1 : 0) +
+    (top !== c.before.top ? 1 : 0) +
+    (prod !== c.before.prod ? 1 : 0) +
+    (end !== c.before.end ? 1 : 0);
+
+  if (!changesCount) {
+    closeModal();
+    toast('未修改任何字段');
+    return;
+  }
+
+  const pickLevel = def => (riskMode === 'mixed' ? def : riskMode);
+  const hits = [];
+  if (v === 1 && c.before.v === 0) {
+    hits.push({
+      key: 'enable',
+      action: '开启广告活动/广告组/商品&广告',
+      triggerText: '开启广告活动（暂停 → 启用）',
+      rule: '定级不达标开启管控',
+      level: pickLevel('禁止操作'),
+      cond: '实际定级小于目标定级：是',
+      perf: '实际定级=C，目标定级=A'
+    });
+  }
+  if (budget > c.before.budget) {
+    hits.push({
+      key: 'budget',
+      action: '提高广告活动预算/基准预算',
+      triggerText: `提高预算（$${c.before.budget.toFixed(2)} → $${budget.toFixed(2)}）`,
+      rule: '高ACOS预算管控',
+      level: pickLevel('飞书审批'),
+      cond: '近7天广告活动ACOS >= 45%',
+      perf: '近7天广告活动ACOS = 52.30%'
+    });
+  }
+  if (top > c.before.top) {
+    hits.push({
+      key: 'top',
+      action: '提高广告位竞价比例',
+      triggerText: `提高广告位比例 - 搜索结果顶部（首页）（${c.before.top}% → ${top}%）`,
+      rule: '低转化控顶位比例',
+      level: pickLevel('页面提醒'),
+      cond: '近14天Style广告转化率 =< 5%',
+      perf: '近14天Style广告转化率 = 3.80%'
+    });
+  }
+
+  c.hits = hits;
+  c.changesCount = changesCount;
+  if (!hits.length) {
+    applyCampaignEditFinal(false, false);
+    return;
+  }
+  renderCampaignEditRiskModal();
+}
+
+function renderCampaignEditRiskModal() {
+  const c = compEditState;
+  const hits = c.hits;
+  const rank = { '页面提醒': 1, '飞书审批': 2, '禁止操作': 3 };
+  const maxLevel = hits.reduce((a, h) => (rank[h.level] > rank[a] ? h.level : a), '页面提醒');
+  c.maxLevel = maxLevel;
+  const isBlock = maxLevel === '禁止操作';
+
+  const tbody = hits.map(h => `<tr>
+    <td><span class="tagmini">${esc(c.type)}</span>${esc(c.campaign)}<br><span style="color:#606266">触发项：${esc(h.triggerText)}</span></td>
+    <td><span class="obj-link" onclick="toast('打开广告活动详情：${esc(c.campaign)}')">${esc(c.campaign)}</span></td>
+    <td>${esc(c.style)}<br>（${esc(c.owner)}）</td>
+    <td>${esc(h.rule)}<br><span class="lvl-inline ${h.level === '禁止操作' ? 'block' : 'warn'}">管控等级：${esc(h.level)}</span></td>
+    <td>店铺：amazon/US/topshoesUS<br>控制动作：${esc(h.action)}<br>${esc(h.cond)}</td>
+    <td>${esc(h.perf)}</td>
+  </tr>`).join('');
+
+  document.getElementById('modalBox').innerHTML = `
+    <article class="risk-card">
+      <div class="risk-card-hd">
+        <div class="hd-title"><span>管控提示</span></div>
+        <button type="button" class="close-x" aria-label="关闭" onclick="closeModal()">×</button>
+      </div>
+      <div class="risk-card-bd">
+        <div class="risk-lead">本次编辑广告活动共修改 ${c.changesCount} 项，其中 ${hits.length} 项修改触发了管控规则，请确认是否继续？</div>
+        <div class="risk-level ${isBlock ? 'block' : ''}">管控等级：${esc(maxLevel)}</div>
+        <div class="risk-sub">触发规则的广告活动修改项：</div>
+        <div class="risk-table-wrap">
+          <table class="risk-table">
+            <thead>
+              <tr>
+                <th style="width:19%">名称</th>
+                <th style="width:14%">广告活动/广告组</th>
+                <th style="width:12%">Style</th>
+                <th style="width:14%">管控规则名称</th>
+                <th style="width:23%">管控规则</th>
+                <th style="width:18%">当前表现</th>
+              </tr>
+            </thead>
+            <tbody>${tbody}</tbody>
+          </table>
+        </div>
+        <div class="risk-choice-row">
+          <span class="risk-choice-label"><span class="req">*</span>处理方式：</span>
+          <label><input type="radio" name="ceDecision" value="exclude" checked onchange="toggleCampaignEditDecision()">排除掉风控部分，其他继续提交</label>
+          ${isBlock ? '' : '<label><input type="radio" name="ceDecision" value="all" onchange="toggleCampaignEditDecision()">全部继续提交</label>'}
+        </div>
+        <div id="ceApprovalBox" class="approval-box" hidden>
+          <div class="approval-label"><span class="req">*</span>审批备注：</div>
+          <div class="textarea-wrap">
+            <textarea id="ceApprovalNote" maxlength="1000" placeholder="请输入审批备注" oninput="document.getElementById('ceNoteCnt').textContent=this.value.length+'/1000'"></textarea>
+            <span class="char-count" id="ceNoteCnt">0/1000</span>
+          </div>
+        </div>
+        <div class="risk-err" id="ceRiskErr" role="status"></div>
+      </div>
+      <div class="risk-card-ft">
+        <span class="foot-hint" id="ceFootHint">回退表中命中的修改项，其余未命中修改继续保存</span>
+        <button type="button" onclick="openCampaignEditModal(false)">返回修改</button>
+        <button type="button" class="primary" onclick="confirmCampaignEditRisk()">确定</button>
+      </div>
+    </article>`;
+  document.getElementById('modalMask').classList.add('on');
+}
+
+function toggleCampaignEditDecision() {
+  const all = document.querySelector('input[name="ceDecision"]:checked')?.value === 'all';
+  const approval = compEditState.maxLevel === '飞书审批' && all;
+  const box = document.getElementById('ceApprovalBox');
+  const hint = document.getElementById('ceFootHint');
+  const err = document.getElementById('ceRiskErr');
+  if (box) box.hidden = !approval;
+  if (hint) {
+    hint.textContent = approval
+      ? '确定后将合并生成 1 张「编辑广告活动」飞书审批单，审批通过后生效'
+      : all
+        ? '确定后全部修改项将直接提交'
+        : '回退表中命中的修改项，其余未命中修改继续保存';
+  }
+  if (err) err.textContent = '';
+}
+
+function confirmCampaignEditRisk() {
+  const all = document.querySelector('input[name="ceDecision"]:checked')?.value === 'all';
+  if (all && compEditState.maxLevel === '飞书审批') {
+    const note = (document.getElementById('ceApprovalNote')?.value || '').trim();
+    if (!note) {
+      const err = document.getElementById('ceRiskErr');
+      if (err) err.textContent = '请填写审批备注';
+      toast('请填写审批备注');
+      return;
+    }
+    applyCampaignEditFinal(false, true);
+    return;
+  }
+  applyCampaignEditFinal(!all, false);
+}
+
+function applyCampaignEditFinal(excludeHits, isApproval) {
+  const c = compEditState;
+  const hitKeys = new Set(c.hits.map(h => h.key));
+  if (isApproval) {
+    closeModal();
+    toast(`已合并发起 1 张「编辑广告活动」飞书审批单（含 ${c.hits.length} 项受控修改），审批通过后生效（演示）`);
+    return;
+  }
+  const finalV = excludeHits && hitKeys.has('enable') ? c.before.v : c.after.v;
+  const finalBudget = excludeHits && hitKeys.has('budget') ? c.before.budget : c.after.budget;
+  const finalTop = excludeHits && hitKeys.has('top') ? c.before.top : c.after.top;
+  const kept = [];
+  if (finalV !== c.before.v) kept.push('活动状态启用');
+  if (finalBudget !== c.before.budget) kept.push(`预算 $${finalBudget.toFixed(2)}`);
+  if (finalTop !== c.before.top) kept.push(`搜索结果顶部 ${finalTop}%`);
+  if (c.after.prod !== c.before.prod) kept.push(`商品页面 ${c.after.prod}%`);
+  if (c.after.end !== c.before.end) kept.push(`结束日期 ${c.after.end}`);
+
+  const rolledBack = excludeHits ? c.hits.map(h => h.triggerText) : [];
+  closeModal();
+  if (!kept.length) {
+    toast('已排除全部风控修改项，无可提交的修改内容（演示）');
+    return;
+  }
+  toast(
+    excludeHits
+      ? `已回退 ${rolledBack.length} 项命中修改，其余已保存：${kept.join('、')}`
+      : `广告活动编辑已全部保存：${kept.join('、')}`
+  );
+}
+
+document.getElementById('modalMask').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+function setActiveNavById(sectionId) {
+  document.querySelectorAll('.nav-pill').forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + sectionId);
+  });
+}
+
+document.querySelectorAll('.nav-pill').forEach(a => {
+  a.addEventListener('click', () => {
+    const id = (a.getAttribute('href') || '').replace(/^#/, '');
+    setActiveNavById(id);
+    const sel = document.getElementById('pgScene');
+    if (sel && SCENES.some(s => s.id === id)) sel.value = id;
+  });
+});
+
+renderAllScenes();
+
+if ('IntersectionObserver' in window) {
+  const observer = new IntersectionObserver(entries => {
+    const visible = entries.filter(e => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+    if (visible.length) setActiveNavById(visible[0].target.id);
+  }, { rootMargin: '-90px 0px -55% 0px', threshold: [0.1, 0.35] });
+  document.querySelectorAll('.scene-section').forEach(sec => observer.observe(sec));
+}
+</script>
+</body>
+</html>
