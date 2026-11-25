@@ -137,28 +137,20 @@ a:hover{text-decoration:underline}
 .modal-box{width:min(1060px,96vw);max-height:90vh;overflow:auto;border-radius:6px;box-shadow:0 12px 40px rgba(0,0,0,.22)}
 .modal-box .risk-table{min-width:780px}
 
-/* 仅幅度提醒表格与直接调整/一键移除控件 */
+/* 幅度提醒：对齐「调整预算」批量应用交互 */
 .amp-diff{color:var(--danger);font-weight:600}
-.amp-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 10px;background:#f7faff;border:1px solid #d9ecff;border-radius:4px}
-.amp-toolbar select,.amp-toolbar input{height:28px;border:1px solid var(--bd);border-radius:4px;padding:0 7px;font-size:12px;color:var(--ink);background:#fff}
-.amp-toolbar select{max-width:128px}
-.amp-toolbar input[type=number]{width:76px}
-.amp-toolbar button{height:28px;min-height:28px;padding:0 10px;font-size:12px}
-.amp-toolbar .amp-spacer{flex:1;min-width:8px}
-.amp-btn-danger{color:var(--danger);border-color:#fbc4c4;background:#fef0f0}
-.amp-btn-danger:hover{color:#fff;background:var(--danger);border-color:var(--danger)}
-.amp-btn-soft{color:var(--blue-d);border-color:#b3d8ff;background:#ecf5ff}
-.amp-btn-soft:hover{background:#d9ecff;border-color:var(--blue)}
-.amp-input-wrap{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 6px;border:1px solid var(--bd);border-radius:4px;background:#fff;width:96px}
+.amp-baseline-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:2px 0}
+.amp-baseline-bar label{font-size:12px;color:var(--ink);white-space:nowrap;margin-right:2px}
+.amp-baseline-bar select,.amp-baseline-bar input{height:32px;border:1px solid var(--bd);border-radius:4px;padding:0 10px;font-size:12px;color:var(--text);background:#fff;min-width:96px}
+.amp-baseline-bar input{width:110px}
+.amp-baseline-bar [hidden]{display:none!important}
+.amp-baseline-bar button.primary{height:32px;min-height:32px;padding:0 14px;font-size:12px}
+.amp-help{margin:0;font-size:12px;color:var(--muted);line-height:1.5}
+.amp-input-wrap{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 8px;border:1px solid var(--bd);border-radius:4px;background:#fff;width:112px}
 .amp-input-wrap:focus-within{border-color:var(--blue)}
-.amp-input-wrap span{color:var(--muted);font-size:11.5px;flex:none}
+.amp-input-wrap span{color:var(--muted);font-size:12px;flex:none}
 .amp-input-wrap input{border:0;outline:none;padding:0;width:100%;min-width:0;font-size:12px;color:var(--ink);background:transparent}
-.amp-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap}
-.amp-badge.over{background:var(--danger-bg);color:var(--danger);border:1px solid #fbc4c4}
-.amp-badge.ok{background:#e8f8f2;color:#14764c;border:1px solid #b8ebd6}
-.amp-single-editor{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 12px;background:#fafbfd;border:1px solid #ebeef5;border-radius:4px}
-.amp-empty{padding:20px 12px;text-align:center;color:var(--muted);background:#fafbfd;border:1px dashed var(--bd);border-radius:4px}
-.amp-foot-note{font-size:12px;color:var(--muted);margin-right:auto}
+.amp-empty{padding:18px 12px;text-align:center;color:var(--muted);background:#fafbfd;border:1px dashed var(--bd);border-radius:4px}
 
 /* 广告活动复合编辑操作演练区 */
 .edit-spec-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 16px;margin-bottom:16px;padding:12px 14px;background:#f7faff;border:1px solid #d9ecff;border-radius:6px;font-size:12px;color:#485365}
@@ -939,63 +931,59 @@ const AMP_FIXTURES = {
     kind: 'budgetSingle',
     mode: 'single',
     domain: 'budget',
-    tag: '预算单条修改 > 100%',
     thresholdPct: 100,
     noun: '预算',
     unitSuffix: '/日',
     minVal: 1,
     rows: [
-      { id: 'bs1', labelHtml: '<span class="tagmini">SP</span>DP-Category-AUTO-Sherry', before: 20, after: 50 }
+      { id: 'bs1', labelHtml: '<span class="tagmini">SP</span>DP-Category-AUTO-Sherry', before: 20, suggested: 24, after: 50 }
     ]
   },
   budgetBatch: {
     kind: 'budgetBatch',
     mode: 'batch',
     domain: 'budget',
-    tag: '预算批量修改 > 100%',
     thresholdPct: 100,
     noun: '预算',
     unitSuffix: '/日',
     minVal: 1,
     rows: [
-      { id: 'bb1', labelHtml: '<span class="tagmini">SP</span>DP-Category-AUTO-Sherry', before: 20, after: 55 },
-      { id: 'bb2', labelHtml: '<span class="tagmini sb">SB</span>2512W-Brand-Collection', before: 15, after: 40 },
-      { id: 'bb3', labelHtml: '<span class="tagmini">SP</span>26001W-Mens-Casual-AUTO', before: 30, after: 75 }
+      { id: 'bb1', labelHtml: '<span class="tagmini">SP</span>DP-Category-AUTO-Sherry', before: 20, suggested: 24, after: 55 },
+      { id: 'bb2', labelHtml: '<span class="tagmini sb">SB</span>2512W-Brand-Collection', before: 15, suggested: 18, after: 40 },
+      { id: 'bb3', labelHtml: '<span class="tagmini">SP</span>26001W-Mens-Casual-AUTO', before: 30, suggested: 36, after: 75 }
     ]
   },
   bidSingle: {
     kind: 'bidSingle',
     mode: 'single',
     domain: 'bid',
-    tag: '竞价单条修改 > 50%',
     thresholdPct: 50,
     noun: '竞价',
     unitSuffix: '',
     minVal: 0.02,
     rows: [
-      { id: 'ids1', labelHtml: tProd("ALLSWIFIT Walking Shoes...", 'e', 'e', 'B08XYZ1234'), before: 0.80, after: 1.50 }
+      { id: 'ids1', labelHtml: tProd("ALLSWIFIT Walking Shoes...", 'e', 'e', 'B08XYZ1234'), before: 0.80, suggested: 0.96, after: 1.50 }
     ]
   },
   bidBatch: {
     kind: 'bidBatch',
     mode: 'batch',
     domain: 'bid',
-    tag: '竞价批量修改 > 50%（ASIN截流场景）',
     thresholdPct: 50,
     noun: '竞价',
     unitSuffix: '',
     minVal: 0.02,
     rows: [
-      { id: 'idb1', labelHtml: tBadge('E', 'e', 'women ankle boots', true), before: 0.85, after: 1.60 },
-      { id: 'idb2', labelHtml: tProd("ALLSWIFIT Walking Shoes...", 's', 's', 'B08XYZ1234'), before: 0.75, after: 1.35 },
-      { id: 'idb3', labelHtml: tProd("DREAM PAIRS Snow Boots...", 'e', 'e', 'B09KLM5678'), before: 0.90, after: 1.70 },
-      { id: 'idb4', labelHtml: 'Ankle-Boots-Exact（默认竞价）', before: 0.70, after: 1.20 }
+      { id: 'idb1', labelHtml: tBadge('E', 'e', 'women ankle boots', true), before: 0.85, suggested: 1.02, after: 1.60 },
+      { id: 'idb2', labelHtml: tProd("ALLSWIFIT Walking Shoes...", 's', 's', 'B08XYZ1234'), before: 0.75, suggested: 0.90, after: 1.35 },
+      { id: 'idb3', labelHtml: tProd("DREAM PAIRS Snow Boots...", 'e', 'e', 'B09KLM5678'), before: 0.90, suggested: 1.08, after: 1.70 },
+      { id: 'idb4', labelHtml: 'Ankle-Boots-Exact（默认竞价）', before: 0.70, suggested: 0.84, after: 1.20 }
     ]
   }
 };
 
 let AMP_STATE = Object.fromEntries(
-  Object.entries(AMP_FIXTURES).map(([k, v]) => [k, { ...structuredClone(v), batchBasis: 'after', batchOp: 'cap', batchVal: '' }])
+  Object.entries(AMP_FIXTURES).map(([k, v]) => [k, { ...structuredClone(v), basis: 'current', op: 'increasePercent', amount: '', cap: '' }])
 );
 
 function ampPct(row) {
@@ -1005,98 +993,78 @@ function ampPct(row) {
 function isAmpOver(row, thresholdPct) {
   return ampPct(row) > thresholdPct + 1e-6;
 }
-function ampCapValue(row, thresholdPct) {
-  return Math.round((row.before * (1 + thresholdPct / 100) + Number.EPSILON) * 100) / 100;
-}
 
 function buildAmplitudeCardHtml(kind, inModal = false) {
   const st = AMP_STATE[kind];
   const uid = (inModal ? 'modal-' : 'card-') + kind;
-  const overCount = st.rows.filter(r => isAmpOver(r, st.thresholdPct)).length;
   const closeFn = inModal ? 'closeModal()' : `toast('已取消${st.noun}修改')`;
 
   let bodyHtml = '';
   if (!st.rows.length) {
     bodyHtml = `
       <div class="amp-empty">
-        <div>已移除全部超出 +${st.thresholdPct}% 的异常${st.noun}项，当前暂无待提交的异常调整。</div>
-        <div style="margin-top:10px"><button type="button" class="amp-btn-soft" onclick="resetAmpState('${kind}',${inModal})">恢复示例数据</button></div>
+        <div>已移除全部超出 +${st.thresholdPct}% 的异常${st.noun}项。</div>
+        <div style="margin-top:10px"><button type="button" onclick="resetAmpState('${kind}',${inModal})">恢复示例</button></div>
       </div>`;
   } else if (st.mode === 'single') {
     const r = st.rows[0];
-    const pct = ampPct(r);
-    const over = isAmpOver(r, st.thresholdPct);
-    const capVal = ampCapValue(r, st.thresholdPct);
     bodyHtml = `
-      <div class="risk-lead">
-        修改${st.noun}：$${r.before.toFixed(2)}${st.unitSuffix} →
-        <span class="amp-input-wrap"><span>$</span><input type="number" min="${st.minVal}" step="0.01" aria-label="修改后${st.noun}" value="${Number.isFinite(r.after) ? r.after.toFixed(2) : ''}" oninput="updateAmpRow('${kind}',0,this.value,'${uid}')"></span>
-        <span id="amp-badge-${uid}-0" class="amp-badge ${over ? 'over' : 'ok'}">${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%${over ? ' · 超限' : ' · 已达标'}</span>
+      <div class="risk-lead" style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+        <span>修改${st.noun}：$${r.before.toFixed(2)}${st.unitSuffix} →</span>
+        <span class="amp-input-wrap"><span>$</span><input type="number" min="${st.minVal}" step="0.01" aria-label="修改后${st.noun}" value="${Number.isFinite(r.after) ? r.after.toFixed(2) : ''}" oninput="updateAmpRow('${kind}',0,this.value)"></span>
       </div>
-      <div>${over ? `提升幅度大于 <span class="amp-diff">${st.thresholdPct}%</span>，请确认是否继续，或直接调整数值 / 一键移除该偏高项：` : `已调整至 +${st.thresholdPct}% 安全阈值内，可直接确认继续提交：`}</div>
-      <div class="amp-single-editor">
-        <button type="button" class="amp-btn-soft" onclick="capSingleAmpRow('${kind}',${inModal})">按上限 +${st.thresholdPct}% 调整（$${capVal.toFixed(2)}）</button>
-        <button type="button" class="amp-btn-danger" onclick="removeAmpOverItems('${kind}',${inModal})">一键移除偏高${st.noun}</button>
-        <button type="button" onclick="resetAmpState('${kind}',${inModal})">重置示例</button>
-      </div>`;
+      <div>提升幅度大于 <span class="amp-diff">${st.thresholdPct}%</span>，请确认是否继续？</div>`;
   } else {
     const colTarget = st.domain === 'budget' ? '广告活动' : '投放 / 广告组';
-    const colBefore = `当前${st.noun}`;
-    const colAfter = `修改后${st.noun}（可直接调整）`;
-    const needInput = st.batchOp !== 'cap';
+    const isCustom = st.basis === 'custom';
     bodyHtml = `
-      <div class="risk-lead">以下${colTarget}的${st.noun}提升幅度<span class="amp-diff">大于${st.thresholdPct}%</span>（共 ${st.rows.length} 项，其中 <span id="amp-overcnt-${uid}" class="amp-diff">${overCount}</span> 项超限），可直接微调或一键移除偏高项：</div>
-      <div class="amp-toolbar" aria-label="异常项批量调整">
-        <select aria-label="调整基准" onchange="AMP_STATE['${kind}'].batchBasis=this.value">
-          <option value="after" ${st.batchBasis === 'after' ? 'selected' : ''}>基于修改后${st.noun}</option>
-          <option value="before" ${st.batchBasis === 'before' ? 'selected' : ''}>基于当前${st.noun}</option>
+      <div class="risk-lead">以下${colTarget}的${st.noun}提升幅度<span class="amp-diff">大于${st.thresholdPct}%</span>，请确认是否继续？</div>
+      <div class="amp-baseline-bar" aria-label="批量调整">
+        <label for="amp-basis-${uid}">基准值</label>
+        <select id="amp-basis-${uid}" onchange="changeAmpBasis('${kind}',this.value,${inModal})">
+          <option value="current" ${st.basis === 'current' ? 'selected' : ''}>当前${st.noun}</option>
+          <option value="suggested" ${st.basis === 'suggested' ? 'selected' : ''}>建议${st.noun}</option>
+          <option value="custom" ${st.basis === 'custom' ? 'selected' : ''}>自定义${st.noun}</option>
         </select>
-        <select aria-label="批量调整方式" onchange="changeAmpBatchOp('${kind}',this.value,${inModal})">
-          <option value="cap" ${st.batchOp === 'cap' ? 'selected' : ''}>按+${st.thresholdPct}%上限封顶</option>
-          <option value="decPct" ${st.batchOp === 'decPct' ? 'selected' : ''}>降低(%)</option>
-          <option value="incPct" ${st.batchOp === 'incPct' ? 'selected' : ''}>提高(%)</option>
-          <option value="decAmt" ${st.batchOp === 'decAmt' ? 'selected' : ''}>降低($)</option>
-          <option value="incAmt" ${st.batchOp === 'incAmt' ? 'selected' : ''}>提高($)</option>
-          <option value="fixed" ${st.batchOp === 'fixed' ? 'selected' : ''}>固定为($)</option>
+        <select aria-label="调整方式" ${isCustom ? 'hidden' : ''} onchange="AMP_STATE['${kind}'].op=this.value">
+          <option value="increasePercent" ${st.op === 'increasePercent' ? 'selected' : ''}>提高(%)</option>
+          <option value="increaseAmount" ${st.op === 'increaseAmount' ? 'selected' : ''}>提高(金额)</option>
+          <option value="decreasePercent" ${st.op === 'decreasePercent' ? 'selected' : ''}>降低(%)</option>
+          <option value="decreaseAmount" ${st.op === 'decreaseAmount' ? 'selected' : ''}>降低(金额)</option>
         </select>
-        ${needInput ? `<input id="amp-bval-${uid}" type="number" min="0" step="0.01" placeholder="数值" value="${esc(st.batchVal)}" oninput="AMP_STATE['${kind}'].batchVal=this.value">` : ''}
-        <button type="button" class="amp-btn-soft" onclick="applyAmpBatch('${kind}',${inModal})">批量应用</button>
-        <span class="amp-spacer"></span>
-        <button type="button" id="amp-rm-${uid}" class="amp-btn-danger" onclick="removeAmpOverItems('${kind}',${inModal})">一键移除偏高${st.noun}${overCount ? ` (${overCount})` : ''}</button>
-        <button type="button" onclick="resetAmpState('${kind}',${inModal})">重置</button>
+        <input id="amp-amt-${uid}" type="number" min="0" step="any" placeholder="${isCustom ? `自定义${st.noun}` : '请输入'}" aria-label="调整数值" value="${esc(st.amount)}" oninput="AMP_STATE['${kind}'].amount=this.value">
+        <input id="amp-cap-${uid}" type="number" min="${st.minVal}" step="0.01" placeholder="调整上限" aria-label="调整上限" ${isCustom ? 'hidden' : ''} value="${esc(st.cap)}" oninput="AMP_STATE['${kind}'].cap=this.value">
+        <button type="button" class="primary" onclick="applyAmpBatch('${kind}',${inModal})">批量应用</button>
       </div>
       <div class="risk-table-wrap">
-        <table class="risk-table" style="min-width:460px">
+        <table class="risk-table" style="min-width:440px">
           <thead>
             <tr>
-              <th style="width:34%">${colTarget}</th>
-              <th style="width:16%">${colBefore}</th>
-              <th style="width:22%">${colAfter}</th>
-              <th style="width:18%">提升幅度</th>
-              <th style="width:10%">操作</th>
+              <th style="width:32%">${colTarget}</th>
+              <th style="width:16%">当前${st.noun}</th>
+              <th style="width:16%">建议${st.noun}</th>
+              <th style="width:24%">修改后${st.noun}</th>
+              <th style="width:12%">操作</th>
             </tr>
           </thead>
           <tbody>
-            ${st.rows.map((r, i) => {
-              const pct = ampPct(r);
-              const over = isAmpOver(r, st.thresholdPct);
-              return `<tr>
-                <td>${r.labelHtml}</td>
-                <td>$${r.before.toFixed(2)}${st.unitSuffix}</td>
-                <td><span class="amp-input-wrap"><span>$</span><input type="number" min="${st.minVal}" step="0.01" aria-label="修改后${st.noun} ${i + 1}" value="${Number.isFinite(r.after) ? r.after.toFixed(2) : ''}" oninput="updateAmpRow('${kind}',${i},this.value,'${uid}')"></span></td>
-                <td><span id="amp-badge-${uid}-${i}" class="amp-badge ${over ? 'over' : 'ok'}">${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%${over ? ' 超限' : ' 正常'}</span></td>
-                <td><span class="obj-link" style="color:var(--danger)" onclick="removeAmpRow('${kind}',${i},${inModal})">移除</span></td>
-              </tr>`;
-            }).join('')}
+            ${st.rows.map((r, i) => `<tr>
+              <td>${r.labelHtml}</td>
+              <td>$${r.before.toFixed(2)}${st.unitSuffix}</td>
+              <td>$${r.suggested.toFixed(2)}${st.unitSuffix}</td>
+              <td><span class="amp-input-wrap"><span>$</span><input type="number" min="${st.minVal}" step="0.01" aria-label="修改后${st.noun} ${i + 1}" value="${Number.isFinite(r.after) ? r.after.toFixed(2) : ''}" oninput="updateAmpRow('${kind}',${i},this.value)"></span></td>
+              <td><span class="obj-link" onclick="removeAmpRow('${kind}',${i},${inModal})">移除</span></td>
+            </tr>`).join('')}
           </tbody>
         </table>
-      </div>`;
+      </div>
+      <p class="amp-help">${st.noun}调整四舍五入精确到小数点后两位数；${st.noun}调整后低于亚马逊规定的最小值时，系统默认将${st.noun}设为最小值</p>`;
   }
 
   return `
     <article class="risk-card">
       <div class="risk-card-hd">
-        <div class="hd-title"><span>风控提醒</span><span class="scene-tag">${esc(st.tag)}</span></div>
+        <div class="hd-title"><span>风控提醒</span></div>
         <div class="hd-actions">
           ${inModal ? '' : `<button type="button" class="preview-btn" onclick="openAmplitudeModal('${kind}')">弹窗预览</button>`}
           <button type="button" class="close-x" aria-label="关闭" onclick="${closeFn}">×</button>
@@ -1104,10 +1072,9 @@ function buildAmplitudeCardHtml(kind, inModal = false) {
       </div>
       <div class="risk-card-bd">${bodyHtml}</div>
       <div class="risk-card-ft">
-        <span class="amp-foot-note" id="amp-foot-${uid}">${st.rows.length ? (overCount ? `当前仍有 ${overCount} 项超出 +${st.thresholdPct}%，可调整后确认或一键移除` : `全部 ${st.rows.length} 项均已调整至安全幅度内`) : '当前已清空异常项'}</span>
         <button type="button" onclick="${closeFn}">取消</button>
-        ${st.mode === 'batch' && overCount > 0 ? `<button type="button" class="amp-btn-danger" onclick="removeAmpOverAndSubmit('${kind}',${inModal})">一键移除偏高项并继续</button>` : ''}
-        <button type="button" class="primary" ${!st.rows.length ? 'disabled' : ''} onclick="confirmAmpSubmit('${kind}',${inModal})">确认并继续</button>
+        <button type="button" ${!st.rows.length ? 'disabled' : ''} onclick="removeAmpAll('${kind}',${inModal})">一键移除</button>
+        <button type="button" class="primary" ${!st.rows.length ? 'disabled' : ''} onclick="confirmAmpSubmit('${kind}',${inModal})">继续</button>
       </div>
     </article>`;
 }
@@ -1118,115 +1085,70 @@ function refreshAmplitudeHost(kind, inModal) {
   if (inModal) document.getElementById('modalBox').innerHTML = buildAmplitudeCardHtml(kind, true);
 }
 
-function updateAmpRow(kind, idx, rawVal, uid) {
-  const st = AMP_STATE[kind];
-  const r = st.rows[idx];
+function updateAmpRow(kind, idx, rawVal) {
+  const r = AMP_STATE[kind].rows[idx];
   if (!r) return;
   const val = Number(rawVal);
   r.after = rawVal.trim() === '' || !Number.isFinite(val) ? NaN : val;
-  const badge = document.getElementById(`amp-badge-${uid}-${idx}`);
-  if (badge) {
-    if (!Number.isFinite(r.after) || r.after <= 0) {
-      badge.className = 'amp-badge over';
-      badge.textContent = '请输入有效数值';
-    } else {
-      const pct = ampPct(r);
-      const over = isAmpOver(r, st.thresholdPct);
-      badge.className = `amp-badge ${over ? 'over' : 'ok'}`;
-      badge.textContent = `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%${over ? (st.mode === 'single' ? ' · 超限' : ' 超限') : (st.mode === 'single' ? ' · 已达标' : ' 正常')}`;
-    }
-  }
-  const overCount = st.rows.filter(x => isAmpOver(x, st.thresholdPct)).length;
-  const cntEl = document.getElementById(`amp-overcnt-${uid}`);
-  if (cntEl) cntEl.textContent = String(overCount);
-  const rmBtn = document.getElementById(`amp-rm-${uid}`);
-  if (rmBtn) rmBtn.textContent = `一键移除偏高${st.noun}${overCount ? ` (${overCount})` : ''}`;
-  const footEl = document.getElementById(`amp-foot-${uid}`);
-  if (footEl) {
-    footEl.textContent = overCount
-      ? `当前仍有 ${overCount} 项超出 +${st.thresholdPct}%，可调整后确认或一键移除`
-      : `全部 ${st.rows.length} 项均已调整至安全幅度内`;
-  }
 }
 
-function capSingleAmpRow(kind, inModal) {
-  const st = AMP_STATE[kind];
-  if (!st.rows.length) return;
-  st.rows[0].after = ampCapValue(st.rows[0], st.thresholdPct);
-  refreshAmplitudeHost(kind, inModal);
-  toast(`已按上限 +${st.thresholdPct}% 调整为 $${st.rows[0].after.toFixed(2)}`);
-}
-
-function changeAmpBatchOp(kind, op, inModal) {
-  AMP_STATE[kind].batchOp = op;
+function changeAmpBasis(kind, basis, inModal) {
+  AMP_STATE[kind].basis = basis;
   refreshAmplitudeHost(kind, inModal);
 }
 
 function applyAmpBatch(kind, inModal) {
   const st = AMP_STATE[kind];
-  const op = st.batchOp;
-  const amt = Number(st.batchVal);
-  if (op !== 'cap') {
-    if (st.batchVal === '' || !Number.isFinite(amt) || amt < 0) {
-      toast('请输入大于等于 0 的有效调整数值');
+  const amt = Number(st.amount);
+  const cap = st.cap === '' ? Infinity : Number(st.cap);
+  if (st.basis === 'custom') {
+    if (st.amount === '' || !Number.isFinite(amt) || amt <= 0) {
+      toast(`请输入大于 0 的自定义${st.noun}`);
       return;
     }
-    if (op === 'decPct' && amt >= 100) {
-      toast('降低比例需小于 100%');
+    const fixed = Math.max(st.minVal, Math.round((amt + Number.EPSILON) * 100) / 100);
+    st.rows.forEach(r => { r.after = fixed; });
+  } else {
+    if (st.amount === '' || !Number.isFinite(amt) || amt < 0) {
+      toast('请输入有效的调整幅度');
       return;
     }
-    if (op === 'fixed' && amt < st.minVal) {
-      toast(`固定值不能低于 $${st.minVal.toFixed(2)}`);
+    if (st.op === 'decreasePercent' && amt > 100) {
+      toast('降低比例不能超过 100%');
       return;
     }
+    if (st.cap !== '' && (!Number.isFinite(cap) || cap < st.minVal)) {
+      toast(`调整上限不能低于 $${st.minVal.toFixed(2)}`);
+      return;
+    }
+    st.rows.forEach(r => {
+      const base = st.basis === 'suggested' ? r.suggested : r.before;
+      const delta = st.op.endsWith('Percent') ? base * amt / 100 : amt;
+      const rawNext = st.op.startsWith('increase') ? base + delta : base - delta;
+      r.after = Math.max(st.minVal, Math.round((Math.min(rawNext, cap) + Number.EPSILON) * 100) / 100);
+    });
   }
-  st.rows.forEach(r => {
-    if (op === 'cap') {
-      r.after = ampCapValue(r, st.thresholdPct);
-      return;
-    }
-    const base = st.batchBasis === 'before' ? r.before : (Number.isFinite(r.after) ? r.after : r.before);
-    let next = base;
-    if (op === 'decPct') next = base * (1 - amt / 100);
-    else if (op === 'incPct') next = base * (1 + amt / 100);
-    else if (op === 'decAmt') next = base - amt;
-    else if (op === 'incAmt') next = base + amt;
-    else if (op === 'fixed') next = amt;
-    r.after = Math.max(st.minVal, Math.round((next + Number.EPSILON) * 100) / 100);
-  });
   refreshAmplitudeHost(kind, inModal);
-  toast(`已对 ${st.rows.length} 项应用批量调整`);
+  toast(`已更新 ${st.rows.length} 项${st.noun}预览`);
 }
 
 function removeAmpRow(kind, idx, inModal) {
-  const st = AMP_STATE[kind];
-  st.rows.splice(idx, 1);
+  AMP_STATE[kind].rows.splice(idx, 1);
   refreshAmplitudeHost(kind, inModal);
   toast('已移除该调整项');
 }
 
-function removeAmpOverItems(kind, inModal) {
+function removeAmpAll(kind, inModal) {
   const st = AMP_STATE[kind];
-  const beforeLen = st.rows.length;
-  st.rows = st.rows.filter(r => !isAmpOver(r, st.thresholdPct));
-  const removed = beforeLen - st.rows.length;
-  refreshAmplitudeHost(kind, inModal);
-  toast(removed ? `已一键移除 ${removed} 项超出 +${st.thresholdPct}% 的偏高${st.noun}` : `当前没有超出 +${st.thresholdPct}% 的偏高${st.noun}`);
-}
-
-function removeAmpOverAndSubmit(kind, inModal) {
-  const st = AMP_STATE[kind];
-  const removed = st.rows.filter(r => isAmpOver(r, st.thresholdPct)).length;
-  st.rows = st.rows.filter(r => !isAmpOver(r, st.thresholdPct));
+  const count = st.rows.length;
+  st.rows = [];
   if (inModal) closeModal();
   else refreshAmplitudeHost(kind, false);
-  toast(st.rows.length
-    ? `已一键移除 ${removed} 项偏高${st.noun}，其余 ${st.rows.length} 项正常继续提交（演示）`
-    : `已移除全部 ${removed} 项偏高${st.noun}，其余无偏高项已继续提交（演示）`);
+  toast(`已一键移除 ${count} 项偏高${st.noun}，其余正常项已继续提交（演示）`);
 }
 
 function resetAmpState(kind, inModal) {
-  AMP_STATE[kind] = { ...structuredClone(AMP_FIXTURES[kind]), batchBasis: 'after', batchOp: 'cap', batchVal: '' };
+  AMP_STATE[kind] = { ...structuredClone(AMP_FIXTURES[kind]), basis: 'current', op: 'increasePercent', amount: '', cap: '' };
   refreshAmplitudeHost(kind, inModal);
 }
 
@@ -1239,8 +1161,8 @@ function confirmAmpSubmit(kind, inModal) {
   if (inModal) closeModal();
   const overCount = st.rows.filter(r => isAmpOver(r, st.thresholdPct)).length;
   toast(overCount
-    ? `已确认提交 ${st.rows.length} 项${st.noun}修改（含 ${overCount} 项高幅度确认，演示）`
-    : `已按页面内调整后的数值提交全部 ${st.rows.length} 项${st.noun}修改（演示）`);
+    ? `已确认继续提交 ${st.rows.length} 项${st.noun}修改（演示）`
+    : `已按调整后的数值提交 ${st.rows.length} 项${st.noun}修改（演示）`);
 }
 
 function openSceneModal(sceneId, level) {
