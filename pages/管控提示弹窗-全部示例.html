@@ -139,12 +139,15 @@ a:hover{text-decoration:underline}
 
 /* 幅度提醒：对齐「调整预算」批量应用交互 */
 .amp-diff{color:var(--danger);font-weight:600}
-.amp-baseline-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:2px 0}
+.amp-pct{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.amp-pct.over{color:#f56c6c;background:#fef0f0;border:1px solid #fbc4c4}
+.amp-pct.ok{color:#67c23a;background:#f0f9eb;border:1px solid #c2e7b0}
+.amp-baseline-bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:2px 0}
 .amp-baseline-bar label{font-size:12px;color:var(--ink);white-space:nowrap;margin-right:2px}
-.amp-baseline-bar select,.amp-baseline-bar input{height:32px;border:1px solid var(--bd);border-radius:4px;padding:0 10px;font-size:12px;color:var(--text);background:#fff;min-width:96px}
-.amp-baseline-bar input{width:110px}
+.amp-baseline-bar select,.amp-baseline-bar input{height:32px;border:1px solid var(--bd);border-radius:4px;padding:0 6px;font-size:12px;color:var(--text);background:#fff;min-width:84px}
+.amp-baseline-bar input{width:82px;min-width:0;padding:0 8px}
 .amp-baseline-bar [hidden]{display:none!important}
-.amp-baseline-bar button.primary{height:32px;min-height:32px;padding:0 14px;font-size:12px}
+.amp-baseline-bar button.primary{height:32px;min-height:32px;padding:0 12px;font-size:12px;white-space:nowrap}
 .amp-help{margin:0;font-size:12px;color:var(--muted);line-height:1.5}
 .amp-input-wrap{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 8px;border:1px solid var(--bd);border-radius:4px;background:#fff;width:112px}
 .amp-input-wrap:focus-within{border-color:var(--blue)}
@@ -993,6 +996,16 @@ function ampPct(row) {
 function isAmpOver(row, thresholdPct) {
   return ampPct(row) > thresholdPct + 1e-6;
 }
+function formatAmpPctMeta(row, thresholdPct) {
+  if (!row.before || !Number.isFinite(row.after)) return { text: '--', over: false };
+  const pct = ampPct(row);
+  const over = pct > thresholdPct + 1e-6;
+  return { text: `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`, over };
+}
+function formatAmpPctHtml(row, thresholdPct, kind, idx) {
+  const { text, over } = formatAmpPctMeta(row, thresholdPct);
+  return `<span class="amp-pct ${over ? 'over' : 'ok'}" data-amp-pct="${kind}-${idx}">${text}</span>`;
+}
 
 function buildAmplitudeCardHtml(kind, inModal = false) {
   const st = AMP_STATE[kind];
@@ -1012,6 +1025,7 @@ function buildAmplitudeCardHtml(kind, inModal = false) {
       <div class="risk-lead" style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
         <span>修改${st.noun}：$${r.before.toFixed(2)}${st.unitSuffix} →</span>
         <span class="amp-input-wrap"><span>$</span><input type="number" min="${st.minVal}" step="0.01" aria-label="修改后${st.noun}" value="${Number.isFinite(r.after) ? r.after.toFixed(2) : ''}" oninput="updateAmpRow('${kind}',0,this.value)"></span>
+        <span>对比比例：${formatAmpPctHtml(r, st.thresholdPct, kind, 0)}</span>
       </div>
       <div>提升幅度大于 <span class="amp-diff">${st.thresholdPct}%</span>，请确认是否继续？</div>`;
   } else {
@@ -1023,7 +1037,7 @@ function buildAmplitudeCardHtml(kind, inModal = false) {
         <label for="amp-basis-${uid}">基准值</label>
         <select id="amp-basis-${uid}" onchange="changeAmpBasis('${kind}',this.value,${inModal})">
           <option value="current" ${st.basis === 'current' ? 'selected' : ''}>当前${st.noun}</option>
-          <option value="suggested" ${st.basis === 'suggested' ? 'selected' : ''}>建议${st.noun}</option>
+          <option value="modified" ${st.basis === 'modified' ? 'selected' : ''}>修改后${st.noun}</option>
           <option value="custom" ${st.basis === 'custom' ? 'selected' : ''}>自定义${st.noun}</option>
         </select>
         <select aria-label="调整方式" ${isCustom ? 'hidden' : ''} onchange="AMP_STATE['${kind}'].op=this.value">
@@ -1042,8 +1056,8 @@ function buildAmplitudeCardHtml(kind, inModal = false) {
             <tr>
               <th style="width:32%">${colTarget}</th>
               <th style="width:16%">当前${st.noun}</th>
-              <th style="width:16%">建议${st.noun}</th>
               <th style="width:24%">修改后${st.noun}</th>
+              <th style="width:16%">对比比例</th>
               <th style="width:12%">操作</th>
             </tr>
           </thead>
@@ -1051,8 +1065,8 @@ function buildAmplitudeCardHtml(kind, inModal = false) {
             ${st.rows.map((r, i) => `<tr>
               <td>${r.labelHtml}</td>
               <td>$${r.before.toFixed(2)}${st.unitSuffix}</td>
-              <td>$${r.suggested.toFixed(2)}${st.unitSuffix}</td>
               <td><span class="amp-input-wrap"><span>$</span><input type="number" min="${st.minVal}" step="0.01" aria-label="修改后${st.noun} ${i + 1}" value="${Number.isFinite(r.after) ? r.after.toFixed(2) : ''}" oninput="updateAmpRow('${kind}',${i},this.value)"></span></td>
+              <td>${formatAmpPctHtml(r, st.thresholdPct, kind, i)}</td>
               <td><span class="obj-link" onclick="removeAmpRow('${kind}',${i},${inModal})">移除</span></td>
             </tr>`).join('')}
           </tbody>
@@ -1086,10 +1100,16 @@ function refreshAmplitudeHost(kind, inModal) {
 }
 
 function updateAmpRow(kind, idx, rawVal) {
-  const r = AMP_STATE[kind].rows[idx];
+  const st = AMP_STATE[kind];
+  const r = st.rows[idx];
   if (!r) return;
   const val = Number(rawVal);
   r.after = rawVal.trim() === '' || !Number.isFinite(val) ? NaN : val;
+  const { text, over } = formatAmpPctMeta(r, st.thresholdPct);
+  document.querySelectorAll(`[data-amp-pct="${kind}-${idx}"]`).forEach(el => {
+    el.textContent = text;
+    el.className = `amp-pct ${over ? 'over' : 'ok'}`;
+  });
 }
 
 function changeAmpBasis(kind, basis, inModal) {
@@ -1122,7 +1142,7 @@ function applyAmpBatch(kind, inModal) {
       return;
     }
     st.rows.forEach(r => {
-      const base = st.basis === 'suggested' ? r.suggested : r.before;
+      const base = st.basis === 'modified' ? (Number.isFinite(r.after) ? r.after : r.before) : r.before;
       const delta = st.op.endsWith('Percent') ? base * amt / 100 : amt;
       const rawNext = st.op.startsWith('increase') ? base + delta : base - delta;
       r.after = Math.max(st.minVal, Math.round((Math.min(rawNext, cap) + Number.EPSILON) * 100) / 100);

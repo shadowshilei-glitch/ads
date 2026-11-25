@@ -529,6 +529,9 @@ body:not(.nav-open) .mgroup-items>.mi{padding:10px 18px;margin:0}
 .float-svc{right:12px;bottom:18px;width:32px;height:84px;border-radius:6px;background:rgba(64,158,255,.9);box-shadow:0 2px 8px rgba(64,158,255,.25)}
 .float-svc span{font-size:11px;letter-spacing:2px}
 /* 幅度提醒弹窗：直接调整（对齐调整预算交互） + 一键移除 */
+.amp-pct{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.amp-pct.over{color:#f56c6c;background:#fef0f0;border:1px solid #fbc4c4}
+.amp-pct.ok{color:#67c23a;background:#f0f9eb;border:1px solid #c2e7b0}
 .amp-input-wrap{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 8px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;width:118px}
 .amp-input-wrap:focus-within{border-color:#409eff}
 .amp-input-wrap span{color:#909399;font-size:12px;flex:none}
@@ -4206,6 +4209,11 @@ function checkBudgetAmplitude(changes){
   BUDGET_FLOW.ampCap='';
   renderBudgetAmplitudeModal();
 }
+function formatBudgetAmpPctMeta(c){
+  if(!c||!c.before||!Number.isFinite(c.after))return{text:'--',over:false};
+  const pct=(c.after-c.before)/c.before*100;
+  return{text:(pct>=0?'+':'')+pct.toFixed(1)+'%',over:pct>100+1e-6};
+}
 function renderBudgetAmplitudeModal(){
   const over=BUDGET_FLOW.ampOver||[];
   if(!over.length){
@@ -4221,7 +4229,7 @@ function renderBudgetAmplitudeModal(){
       <label for="ampBudgetBasis">基准值</label>
       <select id="ampBudgetBasis" onchange="BUDGET_FLOW.ampBasis=this.value;renderBudgetAmplitudeModal()">
         <option value="current" ${basis==='current'?'selected':''}>当前预算</option>
-        <option value="suggested" ${basis==='suggested'?'selected':''}>建议预算</option>
+        <option value="modified" ${basis==='modified'?'selected':''}>修改后预算</option>
         <option value="custom" ${basis==='custom'?'selected':''}>自定义预算</option>
       </select>
       <select aria-label="调整方式" ${isCustom?'hidden':''} onchange="BUDGET_FLOW.ampOp=this.value">
@@ -4235,14 +4243,14 @@ function renderBudgetAmplitudeModal(){
       <button type="button" class="btn pri" onclick="applyBudgetAmpBatch()">批量应用</button>
     </div>
     <table>
-      <thead><tr><th style="width:32%">广告活动</th><th style="width:16%">当前预算</th><th style="width:16%">建议预算</th><th style="width:24%">修改后预算</th><th style="width:12%">操作</th></tr></thead>
+      <thead><tr><th style="width:32%">广告活动</th><th style="width:16%">当前预算</th><th style="width:24%">修改后预算</th><th style="width:16%">对比比例</th><th style="width:12%">操作</th></tr></thead>
       <tbody>${over.map((c,i)=>{
-        const sug=c.suggested??Math.round(c.before*1.2*100)/100;
+        const meta=formatBudgetAmpPctMeta(c);
         return `<tr>
           <td><span class="tagmini ${c.row.t.toLowerCase()}">${c.row.t}</span> ${safeRisk(c.row.n)}</td>
           <td>$${c.before.toFixed(2)}/日</td>
-          <td>$${sug.toFixed(2)}/日</td>
           <td><span class="amp-input-wrap"><span>$</span><input type="number" min="1" step="0.01" aria-label="修改后预算 ${i+1}" value="${Number.isFinite(c.after)?c.after.toFixed(2):''}" oninput="updateBudgetAmpRow(${i},this.value)"></span></td>
+          <td><span class="amp-pct ${meta.over?'over':'ok'}" data-budget-amp-pct="${i}">${meta.text}</span></td>
           <td><a class="budget-link" href="javascript:void(0)" onclick="removeBudgetAmpSingle(${i})">移除</a></td>
         </tr>`;
       }).join('')}</tbody>
@@ -4255,6 +4263,11 @@ function updateBudgetAmpRow(idx,raw){
   const c=BUDGET_FLOW.ampOver[idx];if(!c)return;
   const v=Number(raw);
   c.after=raw.trim()===''||!Number.isFinite(v)?NaN:v;
+  const meta=formatBudgetAmpPctMeta(c);
+  document.querySelectorAll('[data-budget-amp-pct="'+idx+'"]').forEach(el=>{
+    el.textContent=meta.text;
+    el.className='amp-pct '+(meta.over?'over':'ok');
+  });
 }
 function applyBudgetAmpBatch(){
   const basis=BUDGET_FLOW.ampBasis||'current',op=BUDGET_FLOW.ampOp||'increasePercent',raw=BUDGET_FLOW.ampVal||'',capRaw=BUDGET_FLOW.ampCap||'',amt=Number(raw),cap=capRaw===''?Infinity:Number(capRaw),err=document.getElementById('budgetAmpErr');
@@ -4268,8 +4281,7 @@ function applyBudgetAmpBatch(){
     if(op==='decreasePercent'&&amt>100){if(err)err.textContent='降低比例不能超过100%';return}
     if(capRaw!==''&&(!Number.isFinite(cap)||cap<1)){if(err)err.textContent='调整上限不能低于$1.00';return}
     BUDGET_FLOW.ampOver.forEach(c=>{
-      const sug=c.suggested??Math.round(c.before*1.2*100)/100;
-      const base=basis==='suggested'?sug:c.before;
+      const base=basis==='modified'?(Number.isFinite(c.after)?c.after:c.before):c.before;
       const delta=op.endsWith('Percent')?base*amt/100:amt;
       const rawNext=op.startsWith('increase')?base+delta:base-delta;
       c.after=Math.max(1,Math.round((Math.min(rawNext,cap)+Number.EPSILON)*100)/100);
