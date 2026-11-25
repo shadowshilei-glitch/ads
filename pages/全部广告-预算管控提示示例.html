@@ -4256,7 +4256,7 @@ function renderBudgetAmplitudeModal(){
       }).join('')}</tbody>
     </table>
     <p class="baseline-help">预算调整四舍五入精确到小数点后两位数；预算调整后低于亚马逊规定的最小值时，系统默认将预算设为最小值</p>`;
-  const footer=`<span class="risk-error" id="budgetAmpErr"></span><span class="sp"></span><button type="button" class="btn" onclick="closeBudgetFlow()">取消</button><button type="button" class="btn" onclick="removeBudgetAmpAll()">一键移除</button><button type="button" class="btn pri" onclick="confirmBudgetAmpSubmit()">继续</button>`;
+  const footer=`<span class="risk-error" id="budgetAmpErr"></span><span class="sp"></span><button type="button" class="btn" onclick="closeBudgetFlow()">取消</button><button type="button" class="btn" onclick="removeBudgetAmpAll()">移除超出部分并继续</button><button type="button" class="btn pri" onclick="confirmBudgetAmpSubmit()">继续</button>`;
   budgetDialog('风控提醒',body,footer,940);
 }
 function updateBudgetAmpRow(idx,raw){
@@ -4296,16 +4296,18 @@ function removeBudgetAmpSingle(idx){
   renderBudgetAmplitudeModal();
 }
 function removeBudgetAmpAll(){
-  const toDrop=new Set(BUDGET_FLOW.ampOver||[]);
+  const toDrop=new Set((BUDGET_FLOW.ampOver||[]).filter(c=>!Number.isFinite(c.after)||(c.after-c.before)/c.before>1+1e-6));
   BUDGET_FLOW.ampOver=[];
   BUDGET_FLOW.final=BUDGET_FLOW.final.filter(c=>!toDrop.has(c));
   if(!BUDGET_FLOW.final.length){
     closeBudgetFlow();
-    toast('已一键移除全部偏高预算，无可提交的修改');
+    toast('已移除全部超出 +100% 的预算项，无可提交的修改');
     return;
   }
   finishBudget();
-  toast(`已一键移除 ${toDrop.size} 项偏高预算，其余 ${BUDGET_FLOW.final.length} 项已继续提交（演示）`);
+  toast(toDrop.size
+    ? `已移除 ${toDrop.size} 项超出 +100% 的预算，其余 ${BUDGET_FLOW.final.length} 项已继续提交（演示）`
+    : `当前无超出 +100% 的预算项，${BUDGET_FLOW.final.length} 项已继续提交（演示）`);
 }
 function confirmBudgetAmpSubmit(){
   if(BUDGET_FLOW.ampOver.some(c=>!Number.isFinite(c.after)||c.after<1)){

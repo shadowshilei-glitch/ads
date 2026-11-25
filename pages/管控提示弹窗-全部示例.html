@@ -1087,7 +1087,7 @@ function buildAmplitudeCardHtml(kind, inModal = false) {
       <div class="risk-card-bd">${bodyHtml}</div>
       <div class="risk-card-ft">
         <button type="button" onclick="${closeFn}">取消</button>
-        <button type="button" ${!st.rows.length ? 'disabled' : ''} onclick="removeAmpAll('${kind}',${inModal})">一键移除</button>
+        <button type="button" ${!st.rows.length ? 'disabled' : ''} onclick="removeAmpAll('${kind}',${inModal})">移除超出部分并继续</button>
         <button type="button" class="primary" ${!st.rows.length ? 'disabled' : ''} onclick="confirmAmpSubmit('${kind}',${inModal})">继续</button>
       </div>
     </article>`;
@@ -1160,11 +1160,13 @@ function removeAmpRow(kind, idx, inModal) {
 
 function removeAmpAll(kind, inModal) {
   const st = AMP_STATE[kind];
-  const count = st.rows.length;
-  st.rows = [];
+  const overCount = st.rows.filter(r => isAmpOver(r, st.thresholdPct)).length;
+  st.rows = st.rows.filter(r => !isAmpOver(r, st.thresholdPct));
   if (inModal) closeModal();
   else refreshAmplitudeHost(kind, false);
-  toast(`已一键移除 ${count} 项偏高${st.noun}，其余正常项已继续提交（演示）`);
+  toast(overCount
+    ? `已移除 ${overCount} 项超出 +${st.thresholdPct}% 的${st.noun}，其余正常项已继续提交（演示）`
+    : `当前无超出 +${st.thresholdPct}% 的${st.noun}项，已全部继续提交（演示）`);
 }
 
 function resetAmpState(kind, inModal) {
