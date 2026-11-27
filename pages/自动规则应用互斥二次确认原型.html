@@ -1,0 +1,1567 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>自动化规则 - 应用广告活动 | ADS</title>
+  <style>
+    :root {
+      --el-color-primary: #409eff;
+      --el-color-primary-hover: #66b1ff;
+      --el-color-primary-light: #ecf5ff;
+      --el-color-success: #67c23a;
+      --el-color-warning: #e6a23c;
+      --el-color-warning-bg: #fdf6ec;
+      --el-color-danger: #f56c6c;
+      --ink: #303133;
+      --text: #606266;
+      --muted: #909399;
+      --line: #dcdfe6;
+      --line-light: #ebeef5;
+      --table-header: #f5f7fa;
+      --page-bg: #f5f7fa;
+      --font: Arial, "Microsoft YaHei", "PingFang SC", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; min-height: 100%; background: var(--page-bg); color: var(--ink); font: 13px/1.5 var(--font); }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 2px solid #a0cfff;
+      outline-offset: 1px;
+    }
+
+    .el-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      height: 32px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: #fff;
+      color: var(--text);
+      font-size: 13px;
+      white-space: nowrap;
+      transition: .15s ease;
+    }
+    .el-btn:hover:not(:disabled) { color: var(--el-color-primary); border-color: #c6e2ff; background: var(--el-color-primary-light); }
+    .el-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .el-btn--primary { background: var(--el-color-primary); border-color: var(--el-color-primary); color: #fff; }
+    .el-btn--primary:hover:not(:disabled) { background: var(--el-color-primary-hover); border-color: var(--el-color-primary-hover); color: #fff; }
+    .el-btn--link { border: 0; background: transparent; padding: 0 4px; height: auto; color: var(--el-color-primary); font-size: 13px; }
+    .el-btn--link:hover:not(:disabled) { background: transparent; color: var(--el-color-primary-hover); }
+    .el-btn--link:disabled { color: #c0c4cc; cursor: not-allowed; }
+
+    .el-input, .el-select {
+      height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: #fff;
+      color: var(--text);
+      padding: 0 10px;
+      font-size: 13px;
+      min-width: 0;
+    }
+    .el-input::placeholder { color: #a8abb2; }
+    .el-input:focus, .el-select:focus { border-color: var(--el-color-primary); outline: none; }
+
+    /* ADS 布局外壳 */
+    .ads-shell { min-height: 100vh; display: flex; flex-direction: column; }
+    .ads-topbar {
+      position: sticky; top: 0; z-index: 20;
+      height: 56px; background: #fff; border-bottom: 1px solid var(--line-light);
+      display: flex; align-items: center; padding: 0 18px 0 0; gap: 12px;
+    }
+    .ads-brand {
+      width: 64px; height: 56px; display: flex; align-items: center; justify-content: center;
+      border-right: 1px solid #f0f2f5; font-weight: 800; font-size: 16px; color: #26baa5; letter-spacing: .5px;
+      flex: none;
+    }
+    .ads-crumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink); font-weight: 600; }
+    .ads-crumb span { color: var(--muted); font-weight: 400; }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--text); }
+    .user-chip { display: inline-flex; align-items: center; gap: 6px; }
+    .user-avatar {
+      width: 28px; height: 28px; border-radius: 50%; background: #e1e8ec; color: #546474;
+      display: grid; place-items: center; font-weight: 600;
+    }
+
+    .ads-layout { display: flex; flex: 1; min-height: calc(100vh - 56px); }
+    .ads-sidebar {
+      width: 64px; flex: none; background: #fff; border-right: 1px solid var(--line-light);
+      padding: 16px 8px; display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .nav-item {
+      width: 44px; height: 44px; border: 0; border-radius: 6px; background: transparent;
+      color: #606266; display: grid; place-items: center; font-size: 18px;
+    }
+    .nav-item:hover { background: var(--el-color-primary-light); color: var(--el-color-primary); }
+    .nav-item.active { background: var(--el-color-primary); color: #fff; }
+
+    .ads-main { flex: 1; min-width: 0; padding: 12px; }
+    .page-panel {
+      background: #fff; border: 1px solid #e4e7ed; border-radius: 6px;
+      min-height: calc(100vh - 80px); display: flex; flex-direction: column;
+    }
+    .page-tabs {
+      display: flex; align-items: center; gap: 30px; padding: 0 20px; height: 48px;
+      border-bottom: 1px solid var(--line-light);
+    }
+    .page-tab {
+      height: 48px; border: 0; background: transparent; padding: 0; position: relative;
+      color: var(--text); font-size: 14px;
+    }
+    .page-tab.active { color: var(--el-color-primary); font-weight: 600; }
+    .page-tab.active::after {
+      content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--el-color-primary);
+    }
+    .page-body { padding: 16px 20px; flex: 1; min-width: 0; }
+
+    /* 背景页筛选与表格 */
+    .bg-filters { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .bg-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+
+    .vxe-wrap { border: 1px solid var(--line-light); overflow: auto; background: #fff; }
+    .vxe-table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+    .vxe-table th {
+      height: 36px; background: var(--table-header); color: #303133; font-weight: 600;
+      text-align: left; padding: 0 12px; border-bottom: 1px solid var(--line-light); border-right: 1px solid var(--line-light);
+      position: sticky; top: 0; z-index: 2;
+    }
+    .vxe-table td {
+      height: 48px; padding: 6px 12px; color: var(--text);
+      border-bottom: 1px solid var(--line-light); border-right: 1px solid #f2f4f8; vertical-align: middle;
+    }
+    .vxe-table th:last-child, .vxe-table td:last-child { border-right: 0; }
+    .vxe-table tbody tr:hover td { background: #f5f9ff; }
+    .vxe-table tbody tr.is-current-row td { background: #ecf5ff; }
+    .sticky-col-right {
+      position: sticky; right: 0; background: #fff; z-index: 1;
+      box-shadow: -4px 0 8px rgba(0, 0, 0, 0.04);
+    }
+    .vxe-table th.sticky-col-right { background: var(--table-header); z-index: 3; }
+    .vxe-table tbody tr:hover td.sticky-col-right { background: #f5f9ff; }
+
+    .switch-btn {
+      width: 34px; height: 18px; border-radius: 10px; border: 0; padding: 0; position: relative;
+      background: #dcdfe6; vertical-align: middle; transition: .15s;
+    }
+    .switch-btn::after {
+      content: ""; position: absolute; left: 2px; top: 2px; width: 14px; height: 14px;
+      border-radius: 50%; background: #fff; transition: .15s;
+    }
+    .switch-btn.on { background: var(--el-color-primary); }
+    .switch-btn.on::after { left: 18px; }
+
+    /* 状态圆点（仅颜色区分） */
+    .status-dot {
+      display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex: none;
+      background: #c0c4cc;
+    }
+    .status-dot.enabled { background: var(--el-color-success); }
+    .status-dot.paused { background: #c0c4cc; }
+
+    .ad-type-tag {
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 22px; padding: 0 8px; border-radius: 12px; font-size: 12px; flex: none;
+      background: var(--el-color-warning-bg); border: 1px solid #faecd8; color: var(--el-color-warning);
+    }
+    .ad-type-tag.sb { background: #ecf5ff; border-color: #d9ecff; color: #409eff; }
+    .ad-type-tag.sd { background: #f0f9eb; border-color: #e1f3d8; color: #67c23a; }
+
+    .campaign-name-cell {
+      display: flex; align-items: center; gap: 6px; min-width: 0; max-width: 220px;
+    }
+    .campaign-link {
+      color: var(--el-color-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      cursor: pointer;
+    }
+    .campaign-link:hover { text-decoration: underline; }
+
+    /* 模板单元格：仅圆点 + 名称 */
+    .tpl-cell {
+      display: flex; align-items: center; gap: 6px; min-width: 0; max-width: 190px;
+    }
+    .tpl-name-text {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-size: 13px;
+    }
+
+    /* 复选框（已选后左表禁用占位） */
+    .vxe-check {
+      width: 15px; height: 15px; accent-color: var(--el-color-primary); cursor: pointer; vertical-align: middle; margin: 0;
+    }
+    .vxe-check-staged {
+      display: inline-block; width: 15px; height: 15px; border-radius: 2px;
+      background: #dcdfe6; border: 1px solid #c8ccd4; vertical-align: middle; cursor: not-allowed;
+    }
+
+    /* 弹窗1：应用广告活动（贴合线上简洁风格） */
+    .el-overlay {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: 40;
+      display: flex; align-items: flex-start; justify-content: center; padding: 5vh 16px; overflow: auto;
+    }
+    .el-overlay.is-secondary { z-index: 60; background: rgba(0, 0, 0, 0.45); align-items: center; padding: 16px; }
+    .el-dialog {
+      background: #fff; border-radius: 4px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
+      width: min(1240px, 94vw); max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;
+    }
+    .el-dialog.is-fullscreen { width: 98vw; height: 95vh; max-height: 95vh; }
+    .el-dialog.is-confirm-modal { width: min(860px, 92vw); max-height: 88vh; }
+    .el-dialog.is-batch-modal { width: min(440px, 92vw); }
+    .el-dialog__header {
+      padding: 16px 20px; border-bottom: 1px solid var(--line-light);
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .el-dialog__title { font-size: 16px; font-weight: 500; color: var(--ink); margin: 0; }
+    .dialog-header-icons { display: flex; align-items: center; gap: 8px; }
+    .icon-action-btn {
+      width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent;
+      color: #909399; display: grid; place-items: center; font-size: 16px;
+    }
+    .icon-action-btn:hover { background: #f2f4f8; color: var(--el-color-primary); }
+
+    .el-dialog__body { padding: 16px 20px; overflow: auto; flex: 1; }
+    .el-dialog__footer {
+      padding: 12px 20px; border-top: 1px solid var(--line-light);
+      display: flex; align-items: center; justify-content: flex-end; gap: 10px; background: #fff;
+    }
+
+    /* 双栏布局 */
+    .apply-split {
+      display: grid; grid-template-columns: minmax(0, 1.06fr) minmax(0, 1fr); gap: 18px; align-items: start;
+    }
+    .apply-pane { min-width: 0; display: flex; flex-direction: column; }
+
+    /* 3行筛选网格（还原线上7控件+查询/重置） */
+    .apply-filter-grid {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px;
+    }
+    .combined-query {
+      display: flex; align-items: center; border: 1px solid var(--line); border-radius: 4px;
+      height: 32px; background: #fff; overflow: hidden;
+    }
+    .combined-query select {
+      border: 0; border-right: 1px solid var(--line); border-radius: 0; height: 30px; width: 62px;
+      padding: 0 4px 0 8px; flex: none; background: #fff; color: var(--text);
+    }
+    .combined-query input {
+      border: 0; border-radius: 0; height: 30px; flex: 1; min-width: 0; padding: 0 8px;
+    }
+    .combined-query .batch-btn {
+      border: 0; border-left: 1px solid var(--line); background: #fff; color: var(--text);
+      height: 30px; width: 30px; flex: none; display: grid; place-items: center;
+    }
+    .combined-query .batch-btn:hover { color: var(--el-color-primary); background: var(--el-color-primary-light); }
+    .filter-actions-cell { display: flex; align-items: center; gap: 8px; }
+
+    .left-table-box { max-height: 380px; }
+    .right-table-box { max-height: 492px; min-height: 340px; }
+
+    .selected-header {
+      height: 32px; display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .selected-title { font-size: 14px; font-weight: 400; color: var(--ink); }
+
+    /* 分页栏 */
+    .el-pagination {
+      display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap;
+      font-size: 13px; color: var(--text);
+    }
+    .page-btns { display: inline-flex; align-items: center; gap: 4px; }
+    .page-num-btn {
+      min-width: 28px; height: 28px; padding: 0 6px; border: 0; background: transparent;
+      border-radius: 4px; color: var(--text); font-size: 13px;
+    }
+    .page-num-btn:hover:not(:disabled) { color: var(--el-color-primary); }
+    .page-num-btn.active { color: var(--el-color-primary); font-weight: 700; }
+    .page-num-btn:disabled { color: #c0c4cc; cursor: not-allowed; }
+    .page-size-select { height: 28px; padding: 0 8px; font-size: 12px; width: 94px; }
+
+    /* 弹窗2：简洁二次确认 */
+    .confirm-top-bar {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+      margin-bottom: 12px; font-size: 13px; color: var(--text);
+    }
+    .confirm-batch-links { display: inline-flex; align-items: center; gap: 8px; flex: none; }
+    .confirm-batch-sep { color: #dcdfe6; }
+    .radio-choice-group {
+      display: inline-flex; align-items: center; gap: 12px;
+    }
+    .radio-choice {
+      display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 13px; color: var(--text);
+    }
+    .radio-choice input { accent-color: var(--el-color-primary); margin: 0; cursor: pointer; }
+
+    /* Toast 非模态消息提示 */
+    .toast-stack {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      z-index: 200; display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+    }
+    .toast-item {
+      min-width: 260px; max-width: 520px; padding: 10px 18px; border-radius: 4px;
+      background: #f0f9eb; border: 1px solid #e1f3d8; color: #67c23a;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12); font-size: 13px;
+      display: flex; align-items: center; gap: 8px; pointer-events: auto;
+    }
+    .toast-item.warn { background: #fdf6ec; border-color: #faecd8; color: #b87314; }
+    .toast-item.info { background: #edf5ff; border-color: #d9ecff; color: #2b7bd6; }
+
+    .empty-cell { text-align: center !important; color: var(--muted); padding: 48px 12px !important; }
+
+    @media (max-width: 960px) {
+      .ads-sidebar { display: none; }
+      .apply-split { grid-template-columns: 1fr; }
+      .apply-filter-grid { grid-template-columns: 1fr 1fr; }
+      .el-dialog { width: 98vw; max-height: 94vh; }
+      .el-dialog__body { padding: 12px; }
+    }
+    @media (max-width: 600px) {
+      .apply-filter-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="ads-ui">
+  <div class="ads-shell">
+    <header class="ads-topbar">
+      <div class="ads-brand">ADS</div>
+      <div class="ads-crumb">
+        <span>☰</span>
+        效率工具 <span>/ 自动化规则</span>
+      </div>
+      <div class="topbar-right">
+        <button class="el-btn" id="reopen-demo-btn">打开应用弹窗</button>
+        <div class="user-chip">
+          <span class="user-avatar">D</span>
+          <span>石磊-Dylan.Shi</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="ads-layout">
+      <aside class="ads-sidebar" aria-label="主导航">
+        <button class="nav-item" title="首页">⌂</button>
+        <button class="nav-item" title="广告管理">▤</button>
+        <button class="nav-item active" title="效率工具 · 自动化规则">⚙</button>
+        <button class="nav-item" title="数据中心">▥</button>
+        <button class="nav-item" title="关键词">⌕</button>
+      </aside>
+
+      <main class="ads-main">
+        <section class="page-panel">
+          <nav class="page-tabs" aria-label="自动化规则页签">
+            <button class="page-tab" data-page-tab="applications">应用管理</button>
+            <button class="page-tab active" data-page-tab="templates">规则模板</button>
+            <button class="page-tab" data-page-tab="pending">待确认优化</button>
+          </nav>
+          <div class="page-body" id="page-body"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="modal-root"></div>
+  <div class="toast-stack" id="toast-root" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const ALL_RULE_TYPES = [
+        "分时预算",
+        "预算优化",
+        "分时竞价",
+        "广告活动优化",
+        "商品优化",
+        "投放优化",
+        "广告位优化",
+        "搜索词优化"
+      ];
+
+      // 同规则类型互斥：分时预算与预算优化视为同一互斥类型，其余各自类型内互斥
+      function getMutexGroup(type) {
+        if (type === "分时预算" || type === "预算优化") {
+          return { key: "budget_group", label: "分时预算 / 预算优化", isBudgetGroup: true };
+        }
+        return { key: "type_" + type, label: type, isBudgetGroup: false };
+      }
+
+      // 示例模板数据（ES 站点）
+      const templates = [
+        {
+          id: 101,
+          name: "ES新品预算管控-预算优化",
+          type: "预算优化",
+          status: "进行中",
+          site: "ES",
+          validTime: "-",
+          creator: "石磊-Dylan.Shi",
+          createdAt: "2026-11-18 10:20:00",
+          modifier: "石磊-Dylan.Shi",
+          updatedAt: "2026-11-26 14:10:00"
+        },
+        {
+          id: 102,
+          name: "ES晚高峰分时预算策略",
+          type: "分时预算",
+          status: "进行中",
+          site: "ES",
+          validTime: "-",
+          creator: "Abby.Zhou",
+          createdAt: "2026-11-15 09:05:00",
+          modifier: "石磊-Dylan.Shi",
+          updatedAt: "2026-11-24 16:40:00"
+        },
+        {
+          id: 103,
+          name: "ES清仓预算上限控制",
+          type: "预算优化",
+          status: "已暂停",
+          site: "ES",
+          validTime: "2026-11-01 ~ 2026-12-31",
+          creator: "Mia.Zhou",
+          createdAt: "2026-11-10 11:30:00",
+          modifier: "Mia.Zhou",
+          updatedAt: "2026-11-22 18:00:00"
+        },
+        {
+          id: 104,
+          name: "自动否词模板",
+          type: "搜索词优化",
+          status: "已暂停",
+          site: "ES",
+          validTime: "-",
+          creator: "石磊-Dylan.Shi",
+          createdAt: "2026-11-08 09:15:00",
+          modifier: "Abby.Zhou",
+          updatedAt: "2026-11-25 11:20:00"
+        },
+        {
+          id: 105,
+          name: "ES高花费词降价规则",
+          type: "投放优化",
+          status: "进行中",
+          site: "ES",
+          validTime: "-",
+          creator: "Lisa.Wang",
+          createdAt: "2026-11-12 15:00:00",
+          modifier: "Lisa.Wang",
+          updatedAt: "2026-11-20 09:45:00"
+        },
+        {
+          id: 106,
+          name: "ES夜间降价-分时竞价",
+          type: "分时竞价",
+          status: "进行中",
+          site: "ES",
+          validTime: "-",
+          creator: "Kevin.Li",
+          createdAt: "2026-11-14 08:30:00",
+          modifier: "Kevin.Li",
+          updatedAt: "2026-11-21 17:12:00"
+        },
+        {
+          id: 107,
+          name: "ES工作日分时竞价V2",
+          type: "分时竞价",
+          status: "已暂停",
+          site: "ES",
+          validTime: "-",
+          creator: "石磊-Dylan.Shi",
+          createdAt: "2026-11-19 14:15:00",
+          modifier: "石磊-Dylan.Shi",
+          updatedAt: "2026-11-25 10:05:00"
+        },
+        {
+          id: 108,
+          name: "ES低效搜索词精准否定V2",
+          type: "搜索词优化",
+          status: "进行中",
+          site: "ES",
+          validTime: "-",
+          creator: "Mia.Zhou",
+          createdAt: "2026-11-20 10:00:00",
+          modifier: "Mia.Zhou",
+          updatedAt: "2026-11-26 09:30:00"
+        },
+        {
+          id: 109,
+          name: "ES库存不足暂停商品规则",
+          type: "商品优化",
+          status: "进行中",
+          site: "ES",
+          validTime: "-",
+          creator: "石磊-Dylan.Shi",
+          createdAt: "2026-11-21 11:15:00",
+          modifier: "石磊-Dylan.Shi",
+          updatedAt: "2026-11-26 11:15:00"
+        },
+        {
+          id: 110,
+          name: "ES成熟款预算扩量",
+          type: "广告活动优化",
+          status: "进行中",
+          site: "ES",
+          validTime: "-",
+          creator: "Lisa.Wang",
+          createdAt: "2026-11-22 14:40:00",
+          modifier: "Lisa.Wang",
+          updatedAt: "2026-11-26 15:20:00"
+        },
+        {
+          id: 111,
+          name: "ES顶部广告位效率优化",
+          type: "广告位优化",
+          status: "已暂停",
+          site: "ES",
+          validTime: "-",
+          creator: "Kevin.Li",
+          createdAt: "2026-11-23 16:05:00",
+          modifier: "Kevin.Li",
+          updatedAt: "2026-11-26 16:05:00"
+        }
+      ];
+
+      // 示例广告活动数据（ES 站点）
+      const campaigns = [
+        {
+          id: "cmp-1",
+          adType: "SP",
+          name: "BMUMAB2516-BM-Manual-BD-T2-MEN/CHUKKA BOOTS-Isabel",
+          store: "ES/dreampairsEU",
+          site: "ES",
+          budget: "€22.5",
+          style: "ATD20260427ZKK58V",
+          portfolio: "MEN/OUTDOOR/HIKING SHOES",
+          status: "开启",
+          targetingType: "手动广告",
+          templateIds: [102, 108]
+        },
+        {
+          id: "cmp-2",
+          adType: "SP",
+          name: "BMUMAB2508-BM-Manual-EX-MEN/CHUKKA BOOTS-Isabel",
+          store: "ES/dreampairsEU",
+          site: "ES",
+          budget: "€22.5",
+          style: "SDAP-A00817",
+          portfolio: "MEN/FASHION/BOOTS/MOTORCYCLE & COMBAT BOOTS",
+          status: "开启",
+          targetingType: "手动广告",
+          templateIds: [103, 105]
+        },
+        {
+          id: "cmp-3",
+          adType: "SP",
+          name: "STONE-8-BM-Manual-KW-WOMEN/BOOTS-Ivy",
+          store: "ES/dreampairsEU",
+          site: "ES",
+          budget: "€45",
+          style: "SWIM2609W",
+          portfolio: "women ankle boots",
+          status: "开启",
+          targetingType: "手动广告",
+          templateIds: [105, 109]
+        },
+        {
+          id: "cmp-4",
+          adType: "SP",
+          name: "STONE-8-BM-Manual-ASIN-WOMEN/PUMPS-Ivy",
+          store: "ES/dreampairsEU",
+          site: "ES",
+          budget: "€22.5",
+          style: "SDSL2238M-E",
+          portfolio: "women pumps",
+          status: "开启",
+          targetingType: "手动广告",
+          templateIds: [106, 110]
+        },
+        {
+          id: "cmp-5",
+          adType: "SP",
+          name: "DPK-Flats-BM类目词-ES-Manual-Women",
+          store: "ES/dreampairsEU",
+          site: "ES",
+          budget: "€8",
+          style: "SDAP-R1705",
+          portfolio: "women flats",
+          status: "开启",
+          targetingType: "手动广告",
+          templateIds: [102, 104]
+        },
+        {
+          id: "cmp-6",
+          adType: "SP",
+          name: "STONE-8-BM-Auto-商品推广-ES-Women",
+          store: "ES/dreampairsEU",
+          site: "ES",
+          budget: "€15",
+          style: "SDFF2202W",
+          portfolio: "WOMEN/FASHION/FASHION SANDALS/FLAT SANDALS",
+          status: "开启",
+          targetingType: "自动广告",
+          templateIds: []
+        },
+        {
+          id: "cmp-7",
+          adType: "SP",
+          name: "CHUKKA-BM-Manual-大词-ES-Men",
+          store: "ES/dreampairsEU",
+          site: "ES",
+          budget: "€22.5",
+          style: "JFAP-A00814",
+          portfolio: "MEN/OUTDOOR/HIKING SHOES",
+          status: "开启",
+          targetingType: "手动广告",
+          templateIds: [103, 107, 111]
+        },
+        {
+          id: "cmp-8",
+          adType: "SB",
+          name: "SNUO223M-SB-Video-Winter-Boots-ES",
+          store: "ES/dreampairsEU",
+          site: "ES",
+          budget: "€35",
+          style: "SNUO223M",
+          portfolio: "women knee high boots-SP-auto-IVY",
+          status: "开启",
+          targetingType: "手动广告",
+          templateIds: [104, 109]
+        },
+        {
+          id: "cmp-9",
+          adType: "SP",
+          name: "FKAP-GBM0043-Auto-Close-Match-ES",
+          store: "ES/dreampairsEU",
+          site: "ES",
+          budget: "€12",
+          style: "FKAP-GBM0043",
+          portfolio: "WOMEN/OUTDOOR/WATER SHOES",
+          status: "暂停",
+          targetingType: "自动广告",
+          templateIds: [102]
+        },
+        {
+          id: "cmp-10",
+          adType: "SD",
+          name: "FKBT2441-SD-Remarketing-Views-ES",
+          store: "ES/dreampairsEU",
+          site: "ES",
+          budget: "€18",
+          style: "FKBT2441",
+          portfolio: "WOMEN/FASHION/FASHION SANDALS/HEELED SANDALS",
+          status: "开启",
+          targetingType: "手动广告",
+          templateIds: []
+        },
+        {
+          id: "cmp-11",
+          adType: "SP",
+          name: "TRC261016DTDVPM-Manual-Brand-Defense-ES",
+          store: "ES/dreampairsEU",
+          site: "ES",
+          budget: "€30",
+          style: "TRC261016DTDVPM",
+          portfolio: "WOMEN/FASHION/LEISURE SANDALS/SLIDES-SANDALS",
+          status: "开启",
+          targetingType: "手动广告",
+          templateIds: [106, 108]
+        },
+        {
+          id: "cmp-12",
+          adType: "SP",
+          name: "KIDS-PUMPS-Manual-Exact-ES-Spring",
+          store: "ES/dreampairsEU",
+          site: "ES",
+          budget: "€10",
+          style: "ATD20260427ZKK58V",
+          portfolio: "KIDS/FASHION/PUMPS",
+          status: "开启",
+          targetingType: "手动广告",
+          templateIds: [101]
+        }
+      ];
+
+      const operationLogs = [
+        {
+          templateName: "ES晚高峰分时预算策略",
+          action: "应用广告活动",
+          detail: "新增应用 3 个活动（BMUMAB2516-BM... 等）",
+          time: "2026-11-26 11:20:00",
+          operator: "石磊-Dylan.Shi"
+        },
+        {
+          templateName: "ES清仓预算上限控制",
+          action: "状态变更",
+          detail: "进行中 → 已暂停",
+          time: "2026-11-22 18:00:00",
+          operator: "Mia.Zhou"
+        }
+      ];
+
+      const $ = (sel, root = document) => root.querySelector(sel);
+      const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+      const esc = v => String(v ?? "").replace(/[&<>"']/g, ch => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[ch]));
+
+      function nowStr() {
+        const d = new Date();
+        const p = n => String(n).padStart(2, "0");
+        return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+      }
+
+      function showToast(msg, tone = "success") {
+        const root = $("#toast-root");
+        const el = document.createElement("div");
+        el.className = `toast-item ${tone === "warn" ? "warn" : tone === "info" ? "info" : ""}`;
+        el.innerHTML = `<span>${tone === "warn" ? "!" : tone === "info" ? "i" : "✓"}</span><span>${esc(msg)}</span>`;
+        root.appendChild(el);
+        setTimeout(() => el.remove(), 3500);
+      }
+
+      function getTemplateById(id) {
+        return templates.find(t => t.id === id) || null;
+      }
+
+      function getAppliedCount(templateId) {
+        return campaigns.filter(c => c.templateIds.includes(templateId)).length;
+      }
+
+      function getAllConflictTemplates(campaign, currentTemplate) {
+        if (!currentTemplate) return [];
+        const groupKey = getMutexGroup(currentTemplate.type).key;
+        return campaign.templateIds
+          .map(getTemplateById)
+          .filter(t => t && t.id !== currentTemplate.id && getMutexGroup(t.type).key === groupKey);
+      }
+
+      function getConflictTemplate(campaign, currentTemplate) {
+        const list = getAllConflictTemplates(campaign, currentTemplate);
+        return list.length ? list[0] : null;
+      }
+
+      function renderAdTypeTag(adType) {
+        const cls = adType === "SB" ? "sb" : adType === "SD" ? "sd" : "";
+        return `<span class="ad-type-tag ${cls}">${esc(adType)}</span>`;
+      }
+
+      function renderCampaignNameCell(c) {
+        const dotCls = c.status === "开启" ? "enabled" : "paused";
+        return `
+          <div class="campaign-name-cell">
+            <span class="status-dot ${dotCls}" title="活动状态：${esc(c.status)}"></span>
+            ${renderAdTypeTag(c.adType)}
+            <span class="campaign-link" title="${esc(c.name)}">${esc(c.name)}</span>
+          </div>
+        `;
+      }
+
+      // 模板状态仅用圆点颜色标识 + 模板名称，不渲染文字状态
+      function renderDotTemplateCell(tplObj, prefixTitle = "") {
+        if (!tplObj) return `<span style="color:#c0c4cc">-</span>`;
+        const isOn = tplObj.status === "进行中";
+        const tip = `${prefixTitle ? prefixTitle + "｜" : ""}类型：${tplObj.type}｜状态：${tplObj.status}｜名称：${tplObj.name}`;
+        return `
+          <div class="tpl-cell" title="${esc(tip)}">
+            <span class="status-dot ${isOn ? "enabled" : "paused"}"></span>
+            <span class="tpl-name-text">${esc(tplObj.name)}</span>
+          </div>
+        `;
+      }
+
+      function renderMutexTemplateCell(campaign, currentTemplate) {
+        const conflict = getConflictTemplate(campaign, currentTemplate);
+        if (conflict) return renderDotTemplateCell(conflict);
+        if (currentTemplate && campaign.templateIds.includes(currentTemplate.id)) {
+          return renderDotTemplateCell(currentTemplate, "当前模板");
+        }
+        return `<span style="color:#c0c4cc">-</span>`;
+      }
+
+      const bgState = { tab: "templates", q: "", type: "", status: "" };
+      const applyState = {
+        open: false,
+        fullscreen: false,
+        templateId: 101,
+        selectedIds: [],
+        page: 1,
+        pageSize: 10,
+        filters: {
+          match: "contains", q: "", batchTerms: [], store: "", adType: "",
+          style: "", portfolio: "", status: "", targetingType: ""
+        }
+      };
+      const confirmState = {
+        open: false,
+        decisions: {} // campaignId -> 'exclude' | 'replace'
+      };
+
+      function renderBackgroundPage() {
+        $$("[data-page-tab]").forEach(btn => {
+          btn.classList.toggle("active", btn.dataset.pageTab === bgState.tab);
+        });
+        const body = $("#page-body");
+        if (bgState.tab === "templates") renderTemplatesTab(body);
+        else if (bgState.tab === "applications") renderApplicationsTab(body);
+        else renderPendingTab(body);
+      }
+
+      function renderTemplatesTab(container) {
+        const filtered = templates.filter(t => {
+          if (bgState.q && !t.name.toLowerCase().includes(bgState.q.toLowerCase())) return false;
+          if (bgState.type && t.type !== bgState.type) return false;
+          if (bgState.status && t.status !== bgState.status) return false;
+          return true;
+        });
+
+        container.innerHTML = `
+          <div class="bg-filters">
+            <input class="el-input" id="bg-q" style="width:240px" placeholder="请输入模板名称" value="${esc(bgState.q)}" />
+            <select class="el-select" id="bg-type" style="width:160px">
+              <option value="">请选择类型</option>
+              ${ALL_RULE_TYPES.map(rt => `<option value="${esc(rt)}" ${bgState.type === rt ? "selected" : ""}>${esc(rt)}</option>`).join("")}
+            </select>
+            <select class="el-select" id="bg-status" style="width:130px">
+              <option value="">请选择状态</option>
+              <option value="进行中" ${bgState.status === "进行中" ? "selected" : ""}>进行中</option>
+              <option value="已暂停" ${bgState.status === "已暂停" ? "selected" : ""}>已暂停</option>
+            </select>
+            <button class="el-btn" id="bg-reset">重置</button>
+            <button class="el-btn el-btn--primary" id="bg-search">搜索</button>
+          </div>
+          <div class="bg-toolbar">
+            <button class="el-btn" id="bg-logs">操作日志</button>
+          </div>
+          <div class="vxe-wrap">
+            <table class="vxe-table">
+              <thead>
+                <tr>
+                  <th style="width:68px">状态</th>
+                  <th style="min-width:220px">模板名称</th>
+                  <th style="width:120px">类型</th>
+                  <th style="width:90px">状态</th>
+                  <th style="width:170px">有效时间</th>
+                  <th style="width:88px">适用站点</th>
+                  <th style="width:105px">已应用活动</th>
+                  <th style="width:135px">创建人</th>
+                  <th style="width:155px">修改时间</th>
+                  <th class="sticky-col-right" style="width:120px">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filtered.map(t => {
+                  const isOn = t.status === "进行中";
+                  const count = getAppliedCount(t.id);
+                  const isCurrent = applyState.open && applyState.templateId === t.id;
+                  return `
+                    <tr class="${isCurrent ? "is-current-row" : ""}">
+                      <td><button class="switch-btn ${isOn ? "on" : ""}" data-bg-toggle="${t.id}" aria-label="切换状态"></button></td>
+                      <td style="font-weight:500;color:var(--ink)">${esc(t.name)}</td>
+                      <td>${esc(t.type)}</td>
+                      <td>${esc(t.status)}</td>
+                      <td>${esc(t.validTime)}</td>
+                      <td>${esc(t.site)}</td>
+                      <td><button class="el-btn--link" data-bg-apply="${t.id}">${count}</button></td>
+                      <td>${esc(t.creator)}</td>
+                      <td>${esc(t.updatedAt)}</td>
+                      <td class="sticky-col-right">
+                        <button class="el-btn--link" data-bg-apply="${t.id}">应用</button>
+                      </td>
+                    </tr>
+                  `;
+                }).join("") || `<tr><td colspan="10" class="empty-cell">暂无数据</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        $("#bg-search").onclick = () => {
+          bgState.q = $("#bg-q").value.trim();
+          bgState.type = $("#bg-type").value;
+          bgState.status = $("#bg-status").value;
+          renderBackgroundPage();
+        };
+        $("#bg-reset").onclick = () => {
+          bgState.q = ""; bgState.type = ""; bgState.status = "";
+          renderBackgroundPage();
+        };
+        $("#bg-logs").onclick = openLogsModal;
+        $$("[data-bg-toggle]").forEach(btn => {
+          btn.onclick = () => {
+            const t = getTemplateById(Number(btn.dataset.bgToggle));
+            if (!t) return;
+            t.status = t.status === "进行中" ? "已暂停" : "进行中";
+            t.updatedAt = nowStr();
+            renderBackgroundPage();
+            showToast(`模板「${t.name}」状态已切换为：${t.status}`, "info");
+          };
+        });
+        $$("[data-bg-apply]").forEach(btn => {
+          btn.onclick = () => openApplyModal(Number(btn.dataset.bgApply));
+        });
+      }
+
+      function renderApplicationsTab(container) {
+        const groups = ALL_RULE_TYPES.map(rt => ({ label: rt, match: t => t.type === rt }));
+        container.innerHTML = `
+          <div class="vxe-wrap">
+            <table class="vxe-table">
+              <thead>
+                <tr>
+                  <th style="min-width:230px">广告活动</th>
+                  <th style="width:130px">店铺</th>
+                  <th style="width:80px">预算</th>
+                  ${groups.map(g => `<th style="min-width:190px">${esc(g.label)}</th>`).join("")}
+                </tr>
+              </thead>
+              <tbody>
+                ${campaigns.map(c => {
+                  const bound = c.templateIds.map(getTemplateById).filter(Boolean);
+                  return `
+                    <tr>
+                      <td>${renderCampaignNameCell(c)}</td>
+                      <td>${esc(c.store)}</td>
+                      <td>${esc(c.budget)}</td>
+                      ${groups.map(g => `<td>${renderDotTemplateCell(bound.find(g.match))}</td>`).join("")}
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      function renderPendingTab(container) {
+        container.innerHTML = `<div style="padding:36px;text-align:center;color:var(--muted)">待确认优化</div>`;
+      }
+
+      function openApplyModal(templateId, presetIds = null) {
+        applyState.open = true;
+        applyState.templateId = templateId;
+        applyState.page = 1;
+        applyState.filters = {
+          match: "contains", q: "", batchTerms: [], store: "", adType: "",
+          style: "", portfolio: "", status: "", targetingType: ""
+        };
+        if (Array.isArray(presetIds)) {
+          applyState.selectedIds = presetIds.slice();
+        } else {
+          applyState.selectedIds = campaigns
+            .filter(c => c.templateIds.includes(templateId))
+            .map(c => c.id);
+        }
+        confirmState.open = false;
+        confirmState.decisions = {};
+        renderBackgroundPage();
+        renderModals();
+      }
+
+      function getFilteredCandidates() {
+        const tpl = getTemplateById(applyState.templateId);
+        const f = applyState.filters;
+        return campaigns.filter(c => {
+          if (tpl && c.site !== tpl.site) return false;
+          if (f.batchTerms.length) {
+            const hitBatch = f.batchTerms.some(term =>
+              f.match === "exact" ? c.name === term : c.name.toLowerCase().includes(term.toLowerCase())
+            );
+            if (!hitBatch) return false;
+          } else if (f.q) {
+            const qLower = f.q.toLowerCase();
+            const match = f.match === "exact" ? c.name.toLowerCase() === qLower : c.name.toLowerCase().includes(qLower);
+            if (!match) return false;
+          }
+          if (f.store && c.store !== f.store) return false;
+          if (f.adType && c.adType !== f.adType) return false;
+          if (f.style && c.style !== f.style) return false;
+          if (f.portfolio && c.portfolio !== f.portfolio) return false;
+          if (f.status && c.status !== f.status) return false;
+          if (f.targetingType && c.targetingType !== f.targetingType) return false;
+          return true;
+        });
+      }
+
+      function renderModals() {
+        const root = $("#modal-root");
+        if (!applyState.open) {
+          root.innerHTML = "";
+          return;
+        }
+        const tpl = getTemplateById(applyState.templateId);
+        const mutexGroup = getMutexGroup(tpl.type);
+        const candidates = getFilteredCandidates();
+        const total = candidates.length;
+        const totalPages = Math.max(1, Math.ceil(total / applyState.pageSize));
+        if (applyState.page > totalPages) applyState.page = totalPages;
+        const startIdx = (applyState.page - 1) * applyState.pageSize;
+        const pageRows = candidates.slice(startIdx, startIdx + applyState.pageSize);
+
+        const stagedCampaigns = applyState.selectedIds
+          .map(id => campaigns.find(c => c.id === id))
+          .filter(Boolean);
+
+        const uniqueStyles = [...new Set(campaigns.map(c => c.style))];
+        const uniquePortfolios = [...new Set(campaigns.map(c => c.portfolio))];
+        const selectableOnPage = pageRows.filter(c => !applyState.selectedIds.includes(c.id));
+        const allPageSelected = pageRows.length > 0 && selectableOnPage.length === 0;
+
+        root.innerHTML = `
+          <div class="el-overlay" id="apply-overlay">
+            <section class="el-dialog ${applyState.fullscreen ? "is-fullscreen" : ""}" role="dialog" aria-modal="true" aria-label="应用广告活动">
+              <header class="el-dialog__header">
+                <h2 class="el-dialog__title">应用广告活动</h2>
+                <div class="dialog-header-icons">
+                  <button type="button" class="icon-action-btn" id="apply-fullscreen" title="全屏切换" aria-label="全屏切换">⛶</button>
+                  <button type="button" class="icon-action-btn" id="apply-close" title="关闭此对话框" aria-label="关闭此对话框">×</button>
+                </div>
+              </header>
+
+              <div class="el-dialog__body">
+                <div class="apply-split">
+                  <div class="apply-pane">
+                    <div class="apply-filter-grid">
+                      <div class="combined-query">
+                        <select id="f-match" aria-label="匹配方式">
+                          <option value="contains" ${applyState.filters.match === "contains" ? "selected" : ""}>包含</option>
+                          <option value="exact" ${applyState.filters.match === "exact" ? "selected" : ""}>等于</option>
+                        </select>
+                        <input id="f-q" placeholder="请输入广告活动名称" value="${esc(applyState.filters.q)}" />
+                        <button type="button" class="batch-btn" id="f-batch-btn" title="批量输入广告活动名称">...</button>
+                      </div>
+                      <select class="el-select" id="f-store" aria-label="店铺">
+                        <option value="">请选择店铺</option>
+                        <option value="ES/dreampairsEU" ${applyState.filters.store === "ES/dreampairsEU" ? "selected" : ""}>Amazon / ES/dreampairsEU</option>
+                      </select>
+                      <select class="el-select" id="f-ad-type" aria-label="活动类型">
+                        <option value="">请选择活动类型</option>
+                        <option value="SP" ${applyState.filters.adType === "SP" ? "selected" : ""}>SP</option>
+                        <option value="SD" ${applyState.filters.adType === "SD" ? "selected" : ""}>SD</option>
+                        <option value="SB" ${applyState.filters.adType === "SB" ? "selected" : ""}>SB</option>
+                      </select>
+
+                      <select class="el-select" id="f-style" aria-label="Style">
+                        <option value="">Style</option>
+                        ${uniqueStyles.map(s => `<option value="${esc(s)}" ${applyState.filters.style === s ? "selected" : ""}>${esc(s)}</option>`).join("")}
+                      </select>
+                      <select class="el-select" id="f-portfolio" aria-label="广告组合">
+                        <option value="">广告组合</option>
+                        ${uniquePortfolios.map(p => `<option value="${esc(p)}" ${applyState.filters.portfolio === p ? "selected" : ""}>${esc(p)}</option>`).join("")}
+                      </select>
+                      <select class="el-select" id="f-status" aria-label="活动状态">
+                        <option value="">活动状态</option>
+                        <option value="开启" ${applyState.filters.status === "开启" ? "selected" : ""}>开启</option>
+                        <option value="暂停" ${applyState.filters.status === "暂停" ? "selected" : ""}>暂停</option>
+                        <option value="已归档" ${applyState.filters.status === "已归档" ? "selected" : ""}>已归档</option>
+                      </select>
+
+                      <select class="el-select" id="f-targeting" aria-label="投放类型">
+                        <option value="">投放类型</option>
+                        <option value="自动广告" ${applyState.filters.targetingType === "自动广告" ? "selected" : ""}>自动广告</option>
+                        <option value="手动广告" ${applyState.filters.targetingType === "手动广告" ? "selected" : ""}>手动广告</option>
+                      </select>
+                      <div class="filter-actions-cell">
+                        <button type="button" class="el-btn el-btn--primary" id="f-search-btn">查询</button>
+                        <button type="button" class="el-btn" id="f-reset-btn">重置</button>
+                      </div>
+                    </div>
+
+                    <div class="vxe-wrap left-table-box">
+                      <table class="vxe-table">
+                        <thead>
+                          <tr>
+                            <th style="width:44px;text-align:center">
+                              <input type="checkbox" class="vxe-check" id="left-select-all" ${allPageSelected ? "checked" : ""} ${!selectableOnPage.length ? "disabled" : ""} aria-label="全选当前页" />
+                            </th>
+                            <th style="min-width:210px">广告活动</th>
+                            <th style="width:128px">店铺</th>
+                            <th style="width:76px">预算</th>
+                            <th style="min-width:190px" title="同类型规则互斥（绿点=进行中，灰点=已暂停）">${esc(mutexGroup.label)}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          ${pageRows.map(c => {
+                            const isStaged = applyState.selectedIds.includes(c.id);
+                            return `
+                              <tr>
+                                <td style="text-align:center">
+                                  ${isStaged
+                                    ? `<span class="vxe-check-staged" title="已加入右侧已选列表"></span>`
+                                    : `<input type="checkbox" class="vxe-check" data-pick-campaign="${esc(c.id)}" aria-label="选择 ${esc(c.name)}" />`
+                                  }
+                                </td>
+                                <td>${renderCampaignNameCell(c)}</td>
+                                <td>${esc(c.store)}</td>
+                                <td>${esc(c.budget)}</td>
+                                <td>${renderMutexTemplateCell(c, tpl)}</td>
+                              </tr>
+                            `;
+                          }).join("") || `<tr><td colspan="5" class="empty-cell">暂无数据</td></tr>`}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div class="el-pagination">
+                      <span>共 ${total} 条</span>
+                      <div class="page-btns">
+                        <button type="button" class="page-num-btn" id="page-prev" ${applyState.page <= 1 ? "disabled" : ""}>‹</button>
+                        ${Array.from({ length: totalPages }, (_, i) => i + 1).map(p => `
+                          <button type="button" class="page-num-btn ${p === applyState.page ? "active" : ""}" data-page-num="${p}">${p}</button>
+                        `).join("")}
+                        <button type="button" class="page-num-btn" id="page-next" ${applyState.page >= totalPages ? "disabled" : ""}>›</button>
+                      </div>
+                      <select class="el-select page-size-select" id="page-size-select" aria-label="每页条数">
+                        <option value="10" ${applyState.pageSize === 10 ? "selected" : ""}>10条/页</option>
+                        <option value="20" ${applyState.pageSize === 20 ? "selected" : ""}>20条/页</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="apply-pane">
+                    <div class="selected-header">
+                      <span class="selected-title">已选列表</span>
+                      <button type="button" class="el-btn--link" id="remove-all-selected" ${!stagedCampaigns.length ? "disabled" : ""}>全部移除</button>
+                    </div>
+
+                    <div class="vxe-wrap right-table-box">
+                      <table class="vxe-table">
+                        <thead>
+                          <tr>
+                            <th style="min-width:210px">广告活动</th>
+                            <th style="width:128px">店铺</th>
+                            <th style="width:76px">预算</th>
+                            <th style="min-width:190px" title="同类型规则互斥（绿点=进行中，灰点=已暂停）">${esc(mutexGroup.label)}</th>
+                            <th class="sticky-col-right" style="width:72px;text-align:center">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          ${stagedCampaigns.map(c => `
+                            <tr>
+                              <td>${renderCampaignNameCell(c)}</td>
+                              <td>${esc(c.store)}</td>
+                              <td>${esc(c.budget)}</td>
+                              <td>${renderMutexTemplateCell(c, tpl)}</td>
+                              <td class="sticky-col-right" style="text-align:center">
+                                <button type="button" class="el-btn--link" data-unpick-campaign="${esc(c.id)}">移除</button>
+                              </td>
+                            </tr>
+                          `).join("") || `<tr><td colspan="5" class="empty-cell">暂无数据</td></tr>`}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <footer class="el-dialog__footer">
+                <button type="button" class="el-btn" id="apply-cancel">取消</button>
+                <button type="button" class="el-btn el-btn--primary" id="apply-confirm">确定</button>
+              </footer>
+            </section>
+          </div>
+          ${confirmState.open ? renderSecondConfirmHTML(tpl, stagedCampaigns) : ""}
+        `;
+
+        bindApplyModalEvents(pageRows, stagedCampaigns, tpl);
+        if (confirmState.open) {
+          bindSecondConfirmEvents(tpl, stagedCampaigns);
+        }
+      }
+
+      // 简洁版二次确认弹窗
+      function renderSecondConfirmHTML(tpl, stagedCampaigns) {
+        const mutexGroup = getMutexGroup(tpl.type);
+        const conflicts = [];
+        const cleans = [];
+        stagedCampaigns.forEach(c => {
+          const conflict = getConflictTemplate(c, tpl);
+          if (conflict) conflicts.push({ campaign: c, conflict });
+          else cleans.push(c);
+        });
+
+        conflicts.forEach(({ campaign }) => {
+          if (!confirmState.decisions[campaign.id]) {
+            confirmState.decisions[campaign.id] = "exclude";
+          }
+        });
+
+        return `
+          <div class="el-overlay is-secondary" id="confirm-overlay">
+            <section class="el-dialog is-confirm-modal" role="dialog" aria-modal="true" aria-label="已存在同类模板确认">
+              <header class="el-dialog__header">
+                <h2 class="el-dialog__title">已存在同类模板确认</h2>
+                <div class="dialog-header-icons">
+                  <button type="button" class="icon-action-btn" id="confirm-close" title="关闭" aria-label="关闭">×</button>
+                </div>
+              </header>
+
+              <div class="el-dialog__body">
+                <div class="confirm-top-bar">
+                  <span>
+                    以下 ${conflicts.length} 个广告活动已存在「${esc(mutexGroup.label)}」模板，请选择排除或直接替换${cleans.length ? `（其余 ${cleans.length} 个无冲突活动将直接应用）` : ""}：
+                  </span>
+                  <span class="confirm-batch-links">
+                    <button type="button" class="el-btn--link" id="batch-exclude-btn">全部排除</button>
+                    <span class="confirm-batch-sep">|</span>
+                    <button type="button" class="el-btn--link" id="batch-replace-btn">全部替换</button>
+                  </span>
+                </div>
+
+                <div class="vxe-wrap" style="max-height:360px">
+                  <table class="vxe-table">
+                    <thead>
+                      <tr>
+                        <th style="min-width:210px">广告活动</th>
+                        <th style="width:128px">店铺</th>
+                        <th style="width:76px">预算</th>
+                        <th style="min-width:190px">${esc(mutexGroup.label)}</th>
+                        <th class="sticky-col-right" style="width:136px">处理方式</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${conflicts.map(({ campaign, conflict }) => {
+                        const choice = confirmState.decisions[campaign.id] || "exclude";
+                        const radioName = `decision-${campaign.id}`;
+                        return `
+                          <tr>
+                            <td>${renderCampaignNameCell(campaign)}</td>
+                            <td>${esc(campaign.store)}</td>
+                            <td>${esc(campaign.budget)}</td>
+                            <td>${renderDotTemplateCell(conflict)}</td>
+                            <td class="sticky-col-right">
+                              <div class="radio-choice-group">
+                                <label class="radio-choice">
+                                  <input type="radio" name="${esc(radioName)}" value="exclude" ${choice === "exclude" ? "checked" : ""} data-decide="${esc(campaign.id)}" />
+                                  <span>排除</span>
+                                </label>
+                                <label class="radio-choice">
+                                  <input type="radio" name="${esc(radioName)}" value="replace" ${choice === "replace" ? "checked" : ""} data-decide="${esc(campaign.id)}" />
+                                  <span>替换</span>
+                                </label>
+                              </div>
+                            </td>
+                          </tr>
+                        `;
+                      }).join("")}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <footer class="el-dialog__footer">
+                <button type="button" class="el-btn" id="confirm-back">取消</button>
+                <button type="button" class="el-btn el-btn--primary" id="confirm-execute">确定</button>
+              </footer>
+            </section>
+          </div>
+        `;
+      }
+
+      function bindApplyModalEvents(pageRows, stagedCampaigns, tpl) {
+        $("#apply-close").onclick = $("#apply-cancel").onclick = () => {
+          applyState.open = false;
+          confirmState.open = false;
+          renderBackgroundPage();
+          renderModals();
+        };
+        $("#apply-fullscreen").onclick = () => {
+          applyState.fullscreen = !applyState.fullscreen;
+          renderModals();
+        };
+
+        const syncFiltersFromDOM = () => {
+          applyState.filters.match = $("#f-match").value;
+          applyState.filters.q = $("#f-q").value.trim();
+          applyState.filters.store = $("#f-store").value;
+          applyState.filters.adType = $("#f-ad-type").value;
+          applyState.filters.style = $("#f-style").value;
+          applyState.filters.portfolio = $("#f-portfolio").value;
+          applyState.filters.status = $("#f-status").value;
+          applyState.filters.targetingType = $("#f-targeting").value;
+          applyState.page = 1;
+        };
+        $("#f-search-btn").onclick = () => {
+          syncFiltersFromDOM();
+          applyState.filters.batchTerms = [];
+          renderModals();
+        };
+        $("#f-q").onkeydown = e => {
+          if (e.key === "Enter") {
+            syncFiltersFromDOM();
+            applyState.filters.batchTerms = [];
+            renderModals();
+          }
+        };
+        $("#f-reset-btn").onclick = () => {
+          applyState.filters = {
+            match: "contains", q: "", batchTerms: [], store: "", adType: "",
+            style: "", portfolio: "", status: "", targetingType: ""
+          };
+          applyState.page = 1;
+          renderModals();
+        };
+        $("#f-batch-btn").onclick = openBatchQueryModal;
+
+        $$("[data-pick-campaign]").forEach(chk => {
+          chk.onchange = () => {
+            const id = chk.dataset.pickCampaign;
+            if (chk.checked && !applyState.selectedIds.includes(id)) {
+              applyState.selectedIds.push(id);
+            }
+            renderModals();
+          };
+        });
+        $("#left-select-all").onchange = e => {
+          if (!e.target.checked) return;
+          pageRows.forEach(c => {
+            if (!applyState.selectedIds.includes(c.id)) {
+              applyState.selectedIds.push(c.id);
+            }
+          });
+          renderModals();
+        };
+        $$("[data-unpick-campaign]").forEach(btn => {
+          btn.onclick = () => {
+            const id = btn.dataset.unpickCampaign;
+            applyState.selectedIds = applyState.selectedIds.filter(x => x !== id);
+            delete confirmState.decisions[id];
+            renderModals();
+          };
+        });
+        $("#remove-all-selected").onclick = () => {
+          applyState.selectedIds = [];
+          confirmState.decisions = {};
+          renderModals();
+        };
+
+        $$("[data-page-num]").forEach(btn => {
+          btn.onclick = () => { applyState.page = Number(btn.dataset.pageNum); renderModals(); };
+        });
+        $("#page-prev").onclick = () => { if (applyState.page > 1) { applyState.page--; renderModals(); } };
+        $("#page-next").onclick = () => { applyState.page++; renderModals(); };
+        $("#page-size-select").onchange = e => {
+          applyState.pageSize = Number(e.target.value);
+          applyState.page = 1;
+          renderModals();
+        };
+
+        $("#apply-confirm").onclick = () => {
+          if (!stagedCampaigns.length) {
+            showToast("请至少选择一个广告活动", "warn");
+            return;
+          }
+          const conflicts = stagedCampaigns.filter(c => getConflictTemplate(c, tpl));
+          if (!conflicts.length) {
+            commitApplyChanges(tpl, stagedCampaigns, {});
+            return;
+          }
+          confirmState.decisions = {};
+          conflicts.forEach(c => { confirmState.decisions[c.id] = "exclude"; });
+          confirmState.open = true;
+          renderModals();
+        };
+      }
+
+      function bindSecondConfirmEvents(tpl, stagedCampaigns) {
+        const closeSecond = () => {
+          confirmState.open = false;
+          renderModals();
+        };
+        $("#confirm-close").onclick = $("#confirm-back").onclick = closeSecond;
+
+        $$("[data-decide]").forEach(radio => {
+          radio.onchange = () => {
+            confirmState.decisions[radio.dataset.decide] = radio.value;
+          };
+        });
+
+        $("#batch-exclude-btn").onclick = () => {
+          stagedCampaigns.forEach(c => {
+            if (getConflictTemplate(c, tpl)) confirmState.decisions[c.id] = "exclude";
+          });
+          renderModals();
+        };
+        $("#batch-replace-btn").onclick = () => {
+          stagedCampaigns.forEach(c => {
+            if (getConflictTemplate(c, tpl)) confirmState.decisions[c.id] = "replace";
+          });
+          renderModals();
+        };
+
+        $("#confirm-execute").onclick = () => {
+          const conflicts = stagedCampaigns.filter(c => getConflictTemplate(c, tpl));
+          const cleanCount = stagedCampaigns.length - conflicts.length;
+          const replaceCount = conflicts.filter(c => confirmState.decisions[c.id] === "replace").length;
+          if (cleanCount + replaceCount === 0) {
+            showToast("当前全部活动均已排除，请至少将一项设为「替换」或返回调整", "warn");
+            return;
+          }
+          commitApplyChanges(tpl, stagedCampaigns, confirmState.decisions);
+        };
+      }
+
+      function commitApplyChanges(tpl, stagedCampaigns, decisions) {
+        const mutexGroupKey = getMutexGroup(tpl.type).key;
+        let addedCount = 0;
+        let replacedCount = 0;
+        let excludedCount = 0;
+        const replaceNotes = [];
+
+        stagedCampaigns.forEach(c => {
+          const conflicts = getAllConflictTemplates(c, tpl);
+          if (conflicts.length) {
+            const decision = decisions[c.id] || "exclude";
+            if (decision === "exclude") {
+              excludedCount++;
+              return;
+            }
+            const conflictNames = conflicts.map(x => `${x.type}:${x.name}`).join("、");
+            c.templateIds = c.templateIds.filter(id => {
+              const boundTpl = getTemplateById(id);
+              return !boundTpl || getMutexGroup(boundTpl.type).key !== mutexGroupKey;
+            });
+            if (!c.templateIds.includes(tpl.id)) {
+              c.templateIds.push(tpl.id);
+            }
+            replacedCount++;
+            replaceNotes.push(`${c.name}（替换 ${conflictNames}）`);
+          } else {
+            if (!c.templateIds.includes(tpl.id)) {
+              c.templateIds.push(tpl.id);
+              addedCount++;
+            }
+          }
+        });
+
+        operationLogs.unshift({
+          templateName: tpl.name,
+          action: replacedCount ? "应用并替换互斥模板" : "应用广告活动",
+          detail: `新增 ${addedCount} 个，替换 ${replacedCount} 个，排除 ${excludedCount} 个${replaceNotes.length ? "；" + replaceNotes.slice(0, 2).join("；") : ""}`,
+          time: nowStr(),
+          operator: "石磊-Dylan.Shi"
+        });
+
+        applyState.open = false;
+        confirmState.open = false;
+        renderBackgroundPage();
+        renderModals();
+
+        const parts = [];
+        if (addedCount) parts.push(`新增 ${addedCount} 个`);
+        if (replacedCount) parts.push(`替换 ${replacedCount} 个`);
+        if (excludedCount) parts.push(`排除 ${excludedCount} 个`);
+        showToast(`操作成功：${parts.join("，") || "无变更"}`);
+      }
+
+      function openBatchQueryModal() {
+        const layer = document.createElement("div");
+        layer.className = "el-overlay is-secondary";
+        layer.innerHTML = `
+          <section class="el-dialog is-batch-modal" role="dialog" aria-modal="true" aria-label="批量查询">
+            <header class="el-dialog__header">
+              <h2 class="el-dialog__title">批量查询</h2>
+              <button type="button" class="icon-action-btn" data-batch-close>×</button>
+            </header>
+            <div class="el-dialog__body">
+              <div style="margin-bottom:8px;color:var(--text);font-size:12px">每行输入一个广告活动名称</div>
+              <textarea id="batch-textarea" class="el-input" style="width:100%;height:140px;padding:8px 10px;resize:vertical">${esc(applyState.filters.batchTerms.join("\n"))}</textarea>
+            </div>
+            <footer class="el-dialog__footer">
+              <button type="button" class="el-btn" data-batch-close>取消</button>
+              <button type="button" class="el-btn el-btn--primary" id="batch-apply-btn">确定</button>
+            </footer>
+          </section>
+        `;
+        document.body.appendChild(layer);
+        $$("[data-batch-close]", layer).forEach(b => b.onclick = () => layer.remove());
+        $("#batch-apply-btn", layer).onclick = () => {
+          const lines = $("#batch-textarea", layer).value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+          applyState.filters.batchTerms = lines;
+          applyState.filters.q = lines.join("，");
+          applyState.page = 1;
+          layer.remove();
+          renderModals();
+        };
+      }
+
+      function openLogsModal() {
+        const layer = document.createElement("div");
+        layer.className = "el-overlay";
+        layer.innerHTML = `
+          <section class="el-dialog is-confirm-modal" role="dialog" aria-modal="true" aria-label="操作日志">
+            <header class="el-dialog__header">
+              <h2 class="el-dialog__title">操作日志</h2>
+              <button type="button" class="icon-action-btn" data-log-close>×</button>
+            </header>
+            <div class="el-dialog__body">
+              <div class="vxe-wrap" style="max-height:420px">
+                <table class="vxe-table">
+                  <thead>
+                    <tr>
+                      <th style="width:200px">模板名称</th>
+                      <th style="width:140px">操作类型</th>
+                      <th style="min-width:240px">变更内容</th>
+                      <th style="width:155px">操作时间</th>
+                      <th style="width:130px">操作人</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${operationLogs.map(l => `
+                      <tr>
+                        <td style="font-weight:500;color:var(--ink)">${esc(l.templateName)}</td>
+                        <td>${esc(l.action)}</td>
+                        <td style="white-space:normal;line-height:1.5">${esc(l.detail)}</td>
+                        <td>${esc(l.time)}</td>
+                        <td>${esc(l.operator)}</td>
+                      </tr>
+                    `).join("")}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <footer class="el-dialog__footer">
+              <button type="button" class="el-btn el-btn--primary" data-log-close>关闭</button>
+            </footer>
+          </section>
+        `;
+        document.body.appendChild(layer);
+        $$("[data-log-close]", layer).forEach(b => b.onclick = () => layer.remove());
+      }
+
+      $$("[data-page-tab]").forEach(btn => {
+        btn.onclick = () => {
+          bgState.tab = btn.dataset.pageTab;
+          renderBackgroundPage();
+        };
+      });
+      $("#reopen-demo-btn").onclick = () => {
+        openApplyModal(applyState.templateId || 101, ["cmp-1", "cmp-2", "cmp-3", "cmp-6"]);
+      };
+      document.addEventListener("keydown", e => {
+        if (e.key !== "Escape") return;
+        const batchOrLog = $$("body > .el-overlay");
+        if (batchOrLog.length) {
+          batchOrLog[batchOrLog.length - 1].remove();
+          return;
+        }
+        if (confirmState.open) {
+          confirmState.open = false;
+          renderModals();
+          return;
+        }
+        if (applyState.open) {
+          applyState.open = false;
+          renderBackgroundPage();
+          renderModals();
+        }
+      });
+
+      openApplyModal(101, ["cmp-1", "cmp-2", "cmp-3", "cmp-6"]);
+    })();
+  </script>
+</body>
+</html>
